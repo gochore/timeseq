@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// sort sequence by time
 func Sort(seq Sequence) {
 	if seq == nil {
 		return
@@ -12,6 +13,7 @@ func Sort(seq Sequence) {
 	sort.Sort(sortableSequence{seq})
 }
 
+// return sub sequence
 func Range(seq Sequence, afterOrEqual, beforeOrEqual *time.Time) Sequence {
 	i := 0
 	if afterOrEqual != nil {
@@ -31,6 +33,7 @@ func Range(seq Sequence, afterOrEqual, beforeOrEqual *time.Time) Sequence {
 	return seq.Slice(i, j)
 }
 
+// return the index of the first item
 func First(seq Sequence, afterOrEqual *time.Time) int {
 	i := 0
 	if afterOrEqual != nil {
@@ -44,6 +47,7 @@ func First(seq Sequence, afterOrEqual *time.Time) int {
 	return i
 }
 
+// return the index of the last item
 func Last(seq Sequence, beforeOrEqual *time.Time) int {
 	j := seq.Len() - 1
 	if beforeOrEqual != nil {
