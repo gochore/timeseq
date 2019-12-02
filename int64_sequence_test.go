@@ -1,10 +1,13 @@
 package timeseq
 
 import (
+	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/gochore/pt"
 )
 
 func TestInt64Sequence_Len(t *testing.T) {
@@ -146,6 +149,12 @@ func TestInt64Sequence_Sort(t *testing.T) {
 }
 
 func TestInt64Sequence_Range(t *testing.T) {
+	now := time.Now()
+	seq := RandomInt64Sequence(10)
+	for i := range seq {
+		seq[i].Time = now.Add(time.Duration(i) * time.Second)
+	}
+
 	type args struct {
 		afterOrEqual  *time.Time
 		beforeOrEqual *time.Time
@@ -156,7 +165,62 @@ func TestInt64Sequence_Range(t *testing.T) {
 		args args
 		want Int64Sequence
 	}{
-		// TODO: Add test cases.
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  pt.Time(now.Add(1 * time.Second)),
+				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
+			},
+			want: seq[1 : 5+1],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  pt.Time(now),
+				beforeOrEqual: pt.Time(now.Add(100 * time.Second)),
+			},
+			want: seq,
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  pt.Time(now.Add(1*time.Second + time.Millisecond)),
+				beforeOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
+			},
+			want: seq[2 : 4+1],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  pt.Time(now.Add(1*time.Second - time.Millisecond)),
+				beforeOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
+			},
+			want: seq[1 : 5+1],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  nil,
+				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
+			},
+			want: seq[:5+1],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  pt.Time(now.Add(1 * time.Second)),
+				beforeOrEqual: nil,
+			},
+			want: seq[1:],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual:  nil,
+				beforeOrEqual: nil,
+			},
+			want: seq,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -168,6 +232,12 @@ func TestInt64Sequence_Range(t *testing.T) {
 }
 
 func TestInt64Sequence_First(t *testing.T) {
+	now := time.Now()
+	seq := RandomInt64Sequence(10)
+	for i := range seq {
+		seq[i].Time = now.Add(time.Duration(i) * time.Second)
+	}
+
 	type args struct {
 		afterOrEqual *time.Time
 	}
@@ -177,7 +247,62 @@ func TestInt64Sequence_First(t *testing.T) {
 		args args
 		want *Int64Item
 	}{
-		// TODO: Add test cases.
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: nil,
+			},
+			want: seq[0],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now),
+			},
+			want: seq[0],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now.Add(-1 * time.Second)),
+			},
+			want: seq[0],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now.Add(1 * time.Second)),
+			},
+			want: seq[1],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now.Add(5 * time.Second)),
+			},
+			want: seq[5],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
+			},
+			want: seq[5],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
+			},
+			want: seq[6],
+		},
+		{
+			s: seq,
+			args: args{
+				afterOrEqual: pt.Time(now.Add(100 * time.Second)),
+			},
+			want: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -189,6 +314,12 @@ func TestInt64Sequence_First(t *testing.T) {
 }
 
 func TestInt64Sequence_Last(t *testing.T) {
+	now := time.Now()
+	seq := RandomInt64Sequence(10)
+	for i := range seq {
+		seq[i].Time = now.Add(time.Duration(i) * time.Second)
+	}
+
 	type args struct {
 		beforeOrEqual *time.Time
 	}
@@ -198,7 +329,62 @@ func TestInt64Sequence_Last(t *testing.T) {
 		args args
 		want *Int64Item
 	}{
-		// TODO: Add test cases.
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: nil,
+			},
+			want: seq[len(seq)-1],
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now),
+			},
+			want: seq[0],
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now.Add(-1 * time.Second)),
+			},
+			want: nil,
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now.Add(1 * time.Second)),
+			},
+			want: seq[1],
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
+			},
+			want: seq[5],
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
+			},
+			want: seq[4],
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
+			},
+			want: seq[5],
+		},
+		{
+			s: seq,
+			args: args{
+				beforeOrEqual: pt.Time(now.Add(100 * time.Second)),
+			},
+			want: seq[9],
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -210,12 +396,38 @@ func TestInt64Sequence_Last(t *testing.T) {
 }
 
 func TestInt64Sequence_Max(t *testing.T) {
+	seq1 := RandomInt64Sequence(10)
+	seq1.Sort()
+	for i := range seq1 {
+		if i == 0 {
+			seq1[i].Value = 1
+		} else {
+			seq1[i].Value = 0
+		}
+	}
+	seq2 := RandomInt64Sequence(10)
+	seq2.Sort()
+	for i := range seq2 {
+		if i == 0 {
+			seq2[i].Value = 0
+		} else {
+			seq2[i].Value = 1
+		}
+	}
+
 	tests := []struct {
 		name string
 		s    Int64Sequence
 		want *Int64Item
 	}{
-		// TODO: Add test cases.
+		{
+			s:    seq1,
+			want: seq1[0],
+		},
+		{
+			s:    seq2,
+			want: seq2[1],
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -227,12 +439,38 @@ func TestInt64Sequence_Max(t *testing.T) {
 }
 
 func TestInt64Sequence_Min(t *testing.T) {
+	seq1 := RandomInt64Sequence(10)
+	seq1.Sort()
+	for i := range seq1 {
+		if i == 0 {
+			seq1[i].Value = 1
+		} else {
+			seq1[i].Value = 0
+		}
+	}
+	seq2 := RandomInt64Sequence(10)
+	seq2.Sort()
+	for i := range seq2 {
+		if i == 0 {
+			seq2[i].Value = 0
+		} else {
+			seq2[i].Value = 1
+		}
+	}
+
 	tests := []struct {
 		name string
 		s    Int64Sequence
 		want *Int64Item
 	}{
-		// TODO: Add test cases.
+		{
+			s:    seq1,
+			want: seq1[1],
+		},
+		{
+			s:    seq2,
+			want: seq2[0],
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -244,12 +482,20 @@ func TestInt64Sequence_Min(t *testing.T) {
 }
 
 func TestInt64Sequence_Sum(t *testing.T) {
+	seq := RandomInt64Sequence(100)
+	for i := range seq {
+		seq[i].Value = int64(i)
+	}
+
 	tests := []struct {
 		name string
 		s    Int64Sequence
 		want int64
 	}{
-		// TODO: Add test cases.
+		{
+			s:    seq,
+			want: 4950,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -261,12 +507,20 @@ func TestInt64Sequence_Sum(t *testing.T) {
 }
 
 func TestInt64Sequence_Average(t *testing.T) {
+	seq := RandomInt64Sequence(100)
+	for i := range seq {
+		seq[i].Value = int64(i)
+	}
+
 	tests := []struct {
 		name string
 		s    Int64Sequence
 		want int64
 	}{
-		// TODO: Add test cases.
+		{
+			s:    seq,
+			want: 49,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -278,6 +532,11 @@ func TestInt64Sequence_Average(t *testing.T) {
 }
 
 func TestInt64Sequence_Percentile(t *testing.T) {
+	seq := RandomInt64Sequence(100)
+	for i := range seq {
+		seq[i].Value = int64(i) + 1
+	}
+
 	type args struct {
 		pct float64
 	}
@@ -287,13 +546,81 @@ func TestInt64Sequence_Percentile(t *testing.T) {
 		args args
 		want int64
 	}{
-		// TODO: Add test cases.
+		{
+			s: seq,
+			args: args{
+				pct: 0,
+			},
+			want: 1,
+		},
+		{
+			s: seq,
+			args: args{
+				pct: 0.5,
+			},
+			want: 50,
+		},
+		{
+			s: seq,
+			args: args{
+				pct: 0.95,
+			},
+			want: 95,
+		},
+		{
+			s: seq,
+			args: args{
+				pct: 0.955,
+			},
+			want: 95,
+		},
+		{
+			s: seq,
+			args: args{
+				pct: 1,
+			},
+			want: 100,
+		},
+		{
+			s: seq,
+			args: args{
+				pct: 1.1,
+			},
+			want: 100,
+		},
+		{
+			s: seq,
+			args: args{
+				pct: -0.1,
+			},
+			want: 1,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					if tt.args.pct > 1 || tt.args.pct < 0 {
+						return
+					}
+					t.Errorf("Int64Sequence.Percentile() failed: %v", r)
+				}
+			}()
 			if got := tt.s.Percentile(tt.args.pct); got != tt.want {
 				t.Errorf("Int64Sequence.Percentile() = %v, want %v", got, tt.want)
 			}
 		})
 	}
+}
+
+func RandomInt64Sequence(length int) Int64Sequence {
+	now := time.Now()
+	ret := make(Int64Sequence, length)
+	for i := range ret {
+		ret[i] = &Int64Item{
+			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
+			Value: rand.Int63(),
+		}
+	}
+	return ret
 }

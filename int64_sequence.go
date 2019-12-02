@@ -1,6 +1,7 @@
 package timeseq
 
 import (
+	"errors"
 	"sort"
 	"time"
 )
@@ -78,7 +79,7 @@ func (s Int64Sequence) Min() *Int64Item {
 	for _, v := range s {
 		if min == nil {
 			min = v
-		} else if v.Value > min.Value {
+		} else if v.Value < min.Value {
 			min = v
 		}
 	}
@@ -97,15 +98,13 @@ func (s Int64Sequence) Average() int64 {
 	if len(s) == 0 {
 		return 0
 	}
+
 	return int64(float64(s.Sum()) / float64(len(s)))
 }
 
 func (s Int64Sequence) Percentile(pct float64) int64 {
-	if pct > 1 {
-		pct = 1
-	}
-	if pct < 0 {
-		pct = 0
+	if pct > 1 || pct < 0 {
+		panic(errors.New("percentile must be [0, 1]"))
 	}
 
 	var values []int64

@@ -1,7 +1,6 @@
 package timeseq
 
 import (
-	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
@@ -291,16 +290,4 @@ func TestLast(t *testing.T) {
 			}
 		})
 	}
-}
-
-func RandomInt64Sequence(length int) Int64Sequence {
-	now := time.Now()
-	ret := make(Int64Sequence, length)
-	for i := range ret {
-		ret[i] = &Int64Item{
-			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
-			Value: rand.Int63(),
-		}
-	}
-	return ret
 }
