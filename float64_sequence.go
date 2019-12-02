@@ -1,6 +1,7 @@
 package timeseq
 
 import (
+	"errors"
 	"sort"
 	"time"
 )
@@ -32,7 +33,7 @@ func (s Float64Sequence) Sort() {
 	Sort(s)
 }
 
-func (s Float64Sequence) Range(afterOrEqual, beforeOrEqual time.Time) Float64Sequence {
+func (s Float64Sequence) Range(afterOrEqual, beforeOrEqual *time.Time) Float64Sequence {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
@@ -43,13 +44,7 @@ func (s Float64Sequence) First(afterOrEqual *time.Time) *Float64Item {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
-	if len(s) == 0 {
-		return nil
-	}
-	if afterOrEqual == nil {
-		return s[0]
-	}
-	i := First(s, *afterOrEqual)
+	i := First(s, afterOrEqual)
 	if i < 0 {
 		return nil
 	}
@@ -60,49 +55,35 @@ func (s Float64Sequence) Last(beforeOrEqual *time.Time) *Float64Item {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
-	if len(s) == 0 {
-		return nil
-	}
-	if beforeOrEqual == nil {
-		return s[len(s)-1]
-	}
-	i := Last(s, *beforeOrEqual)
+	i := Last(s, beforeOrEqual)
 	if i < 0 {
 		return nil
 	}
 	return s[i]
 }
 
-func (s Float64Sequence) Max() (int, float64) {
-	if len(s) == 0 {
-		return -1, 0
-	}
-
-	index, max := 0, s[0].Value
-	for i, v := range s {
-		if v.Value > max {
-			index = i
-			max = v.Value
+func (s Float64Sequence) Max() *Float64Item {
+	var max *Float64Item
+	for _, v := range s {
+		if max == nil {
+			max = v
+		} else if v.Value > max.Value {
+			max = v
 		}
 	}
-
-	return index, max
+	return max
 }
 
-func (s Float64Sequence) Min() (int, float64) {
-	if len(s) == 0 {
-		return -1, 0
-	}
-
-	index, min := 0, s[0].Value
-	for i, v := range s {
-		if v.Value < min {
-			index = i
-			min = v.Value
+func (s Float64Sequence) Min() *Float64Item {
+	var min *Float64Item
+	for _, v := range s {
+		if min == nil {
+			min = v
+		} else if v.Value < min.Value {
+			min = v
 		}
 	}
-
-	return index, min
+	return min
 }
 
 func (s Float64Sequence) Sum() float64 {
@@ -117,15 +98,13 @@ func (s Float64Sequence) Average() float64 {
 	if len(s) == 0 {
 		return 0
 	}
+
 	return s.Sum() / float64(len(s))
 }
 
 func (s Float64Sequence) Percentile(pct float64) float64 {
-	if pct > 1 {
-		pct = 1
-	}
-	if pct < 0 {
-		pct = 0
+	if pct > 1 || pct < 0 {
+		panic(errors.New("percentile must be [0, 1]"))
 	}
 
 	var values []float64
