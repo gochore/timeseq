@@ -1,8 +1,12 @@
 package timeseq
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_sortableSequence_Less(t *testing.T) {
+	seq := RandomInt64Sequence(10)
+
 	type fields struct {
 		Sequence Sequence
 	}
@@ -16,7 +20,26 @@ func Test_sortableSequence_Less(t *testing.T) {
 		args   args
 		want   bool
 	}{
-		// TODO: Add test cases.
+		{
+			fields: fields{
+				Sequence: seq,
+			},
+			args: args{
+				i: 2,
+				j: 9,
+			},
+			want: seq.Time(2).Before(seq.Time(9)),
+		},
+		{
+			fields: fields{
+				Sequence: seq,
+			},
+			args: args{
+				i: 8,
+				j: 3,
+			},
+			want: seq.Time(8).Before(seq.Time(3)),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
