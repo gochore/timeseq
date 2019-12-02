@@ -12,7 +12,7 @@ type Float64Item struct {
 	Value float64
 }
 
-// Int64Sequence is the implement of Sequence for float64
+// Float64Sequence is the implement of Sequence for float64
 type Float64Sequence []*Float64Item
 
 // Len implements Sequence.Len
