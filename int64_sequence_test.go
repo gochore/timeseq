@@ -1,8 +1,8 @@
 package timeseq
 
 import (
-	"math/rand"
 	"reflect"
+	"sort"
 	"testing"
 	"time"
 )
@@ -13,7 +13,18 @@ func TestInt64Sequence_Len(t *testing.T) {
 		s    Int64Sequence
 		want int
 	}{
-		// TODO: Add test cases.
+		{
+			s:    RandomInt64Sequence(10),
+			want: 10,
+		},
+		{
+			s:    RandomInt64Sequence(0),
+			want: 0,
+		},
+		{
+			s:    nil,
+			want: 0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -34,16 +45,30 @@ func TestInt64Sequence_Swap(t *testing.T) {
 		s    Int64Sequence
 		args args
 	}{
-		// TODO: Add test cases.
+		{
+			s: RandomInt64Sequence(10),
+			args: args{
+				i: 0,
+				j: 5,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ti := tt.s.Time(tt.args.i)
+			tj := tt.s.Time(tt.args.j)
 			tt.s.Swap(tt.args.i, tt.args.j)
+			if ti != tt.s.Time(tt.args.j) || tj != tt.s.Time(tt.args.i) {
+				t.Errorf("Int64Sequence.Swap() failed")
+			}
 		})
 	}
 }
 
 func TestInt64Sequence_Time(t *testing.T) {
+	seq := RandomInt64Sequence(10)
+	seq.Sort()
+
 	type args struct {
 		i int
 	}
@@ -53,7 +78,13 @@ func TestInt64Sequence_Time(t *testing.T) {
 		args args
 		want time.Time
 	}{
-		// TODO: Add test cases.
+		{
+			s: seq,
+			args: args{
+				i: 9,
+			},
+			want: seq[9].Time,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -65,6 +96,8 @@ func TestInt64Sequence_Time(t *testing.T) {
 }
 
 func TestInt64Sequence_Slice(t *testing.T) {
+	seq := RandomInt64Sequence(10)
+
 	type args struct {
 		i int
 		j int
@@ -75,7 +108,14 @@ func TestInt64Sequence_Slice(t *testing.T) {
 		args args
 		want Sequence
 	}{
-		// TODO: Add test cases.
+		{
+			s: seq,
+			args: args{
+				i: 2,
+				j: 10,
+			},
+			want: seq[2:10],
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -91,19 +131,24 @@ func TestInt64Sequence_Sort(t *testing.T) {
 		name string
 		s    Int64Sequence
 	}{
-		// TODO: Add test cases.
+		{
+			s: RandomInt64Sequence(10),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.s.Sort()
+			if !sort.IsSorted(sortableSequence{tt.s}) {
+				t.Error("Int64Sequence.Slice() failed")
+			}
 		})
 	}
 }
 
 func TestInt64Sequence_Range(t *testing.T) {
 	type args struct {
-		afterOrEqual  time.Time
-		beforeOrEqual time.Time
+		afterOrEqual  *time.Time
+		beforeOrEqual *time.Time
 	}
 	tests := []struct {
 		name string
@@ -166,21 +211,16 @@ func TestInt64Sequence_Last(t *testing.T) {
 
 func TestInt64Sequence_Max(t *testing.T) {
 	tests := []struct {
-		name  string
-		s     Int64Sequence
-		want  int
-		want1 int64
+		name string
+		s    Int64Sequence
+		want *Int64Item
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := tt.s.Max()
-			if got != tt.want {
-				t.Errorf("Int64Sequence.Max() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("Int64Sequence.Max() got1 = %v, want %v", got1, tt.want1)
+			if got := tt.s.Max(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Int64Sequence.Max() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -188,21 +228,16 @@ func TestInt64Sequence_Max(t *testing.T) {
 
 func TestInt64Sequence_Min(t *testing.T) {
 	tests := []struct {
-		name  string
-		s     Int64Sequence
-		want  int
-		want1 int64
+		name string
+		s    Int64Sequence
+		want *Int64Item
 	}{
 		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := tt.s.Min()
-			if got != tt.want {
-				t.Errorf("Int64Sequence.Min() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("Int64Sequence.Min() got1 = %v, want %v", got1, tt.want1)
+			if got := tt.s.Min(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Int64Sequence.Min() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -261,16 +296,4 @@ func TestInt64Sequence_Percentile(t *testing.T) {
 			}
 		})
 	}
-}
-
-func RandomInt64Sequence(length int) Int64Sequence {
-	now := time.Now()
-	ret := make(Int64Sequence, length)
-	for i := range ret {
-		ret[i] = &Int64Item{
-			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
-			Value: rand.Int63(),
-		}
-	}
-	return ret
 }

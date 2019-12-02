@@ -32,7 +32,7 @@ func (s Int64Sequence) Sort() {
 	Sort(s)
 }
 
-func (s Int64Sequence) Range(afterOrEqual, beforeOrEqual time.Time) Int64Sequence {
+func (s Int64Sequence) Range(afterOrEqual, beforeOrEqual *time.Time) Int64Sequence {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
@@ -43,13 +43,7 @@ func (s Int64Sequence) First(afterOrEqual *time.Time) *Int64Item {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
-	if len(s) == 0 {
-		return nil
-	}
-	if afterOrEqual == nil {
-		return s[0]
-	}
-	i := First(s, *afterOrEqual)
+	i := First(s, afterOrEqual)
 	if i < 0 {
 		return nil
 	}
@@ -60,49 +54,35 @@ func (s Int64Sequence) Last(beforeOrEqual *time.Time) *Int64Item {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
-	if len(s) == 0 {
-		return nil
-	}
-	if beforeOrEqual == nil {
-		return s[len(s)-1]
-	}
-	i := Last(s, *beforeOrEqual)
+	i := Last(s, beforeOrEqual)
 	if i < 0 {
 		return nil
 	}
 	return s[i]
 }
 
-func (s Int64Sequence) Max() (int, int64) {
-	if len(s) == 0 {
-		return -1, 0
-	}
-
-	index, max := 0, s[0].Value
-	for i, v := range s {
-		if v.Value > max {
-			index = i
-			max = v.Value
+func (s Int64Sequence) Max() *Int64Item {
+	var max *Int64Item
+	for _, v := range s {
+		if max == nil {
+			max = v
+		} else if v.Value > max.Value {
+			max = v
 		}
 	}
-
-	return index, max
+	return max
 }
 
-func (s Int64Sequence) Min() (int, int64) {
-	if len(s) == 0 {
-		return -1, 0
-	}
-
-	index, min := 0, s[0].Value
-	for i, v := range s {
-		if v.Value < min {
-			index = i
-			min = v.Value
+func (s Int64Sequence) Min() *Int64Item {
+	var min *Int64Item
+	for _, v := range s {
+		if min == nil {
+			min = v
+		} else if v.Value > min.Value {
+			min = v
 		}
 	}
-
-	return index, min
+	return min
 }
 
 func (s Int64Sequence) Sum() int64 {

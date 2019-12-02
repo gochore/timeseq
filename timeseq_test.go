@@ -1,10 +1,13 @@
 package timeseq
 
 import (
+	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/gochore/pt"
 )
 
 func TestSort(t *testing.T) {
@@ -52,8 +55,8 @@ func TestRange(t *testing.T) {
 
 	type args struct {
 		seq           Sequence
-		afterOrEqual  time.Time
-		beforeOrEqual time.Time
+		afterOrEqual  *time.Time
+		beforeOrEqual *time.Time
 	}
 	tests := []struct {
 		name string
@@ -63,34 +66,58 @@ func TestRange(t *testing.T) {
 		{
 			args: args{
 				seq:           seq,
-				afterOrEqual:  now.Add(1 * time.Second),
-				beforeOrEqual: now.Add(5 * time.Second),
+				afterOrEqual:  pt.Time(now.Add(1 * time.Second)),
+				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
 			want: seq[1 : 5+1],
 		},
 		{
 			args: args{
 				seq:           seq,
-				afterOrEqual:  now,
-				beforeOrEqual: now.Add(100 * time.Second),
+				afterOrEqual:  pt.Time(now),
+				beforeOrEqual: pt.Time(now.Add(100 * time.Second)),
 			},
 			want: seq,
 		},
 		{
 			args: args{
 				seq:           seq,
-				afterOrEqual:  now.Add(1*time.Second + time.Millisecond),
-				beforeOrEqual: now.Add(5*time.Second - time.Millisecond),
+				afterOrEqual:  pt.Time(now.Add(1*time.Second + time.Millisecond)),
+				beforeOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
 			want: seq[2 : 4+1],
 		},
 		{
 			args: args{
 				seq:           seq,
-				afterOrEqual:  now.Add(1*time.Second - time.Millisecond),
-				beforeOrEqual: now.Add(5*time.Second + time.Millisecond),
+				afterOrEqual:  pt.Time(now.Add(1*time.Second - time.Millisecond)),
+				beforeOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
 			want: seq[1 : 5+1],
+		},
+		{
+			args: args{
+				seq:           seq,
+				afterOrEqual:  nil,
+				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
+			},
+			want: seq[:5+1],
+		},
+		{
+			args: args{
+				seq:           seq,
+				afterOrEqual:  pt.Time(now.Add(1 * time.Second)),
+				beforeOrEqual: nil,
+			},
+			want: seq[1:],
+		},
+		{
+			args: args{
+				seq:           seq,
+				afterOrEqual:  nil,
+				beforeOrEqual: nil,
+			},
+			want: seq,
 		},
 	}
 	for _, tt := range tests {
@@ -111,7 +138,7 @@ func TestFirst(t *testing.T) {
 
 	type args struct {
 		seq          Sequence
-		afterOrEqual time.Time
+		afterOrEqual *time.Time
 	}
 	tests := []struct {
 		name string
@@ -121,49 +148,56 @@ func TestFirst(t *testing.T) {
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now,
+				afterOrEqual: nil,
 			},
 			want: 0,
 		},
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now.Add(-1 * time.Second),
+				afterOrEqual: pt.Time(now),
 			},
 			want: 0,
 		},
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now.Add(1 * time.Second),
+				afterOrEqual: pt.Time(now.Add(-1 * time.Second)),
+			},
+			want: 0,
+		},
+		{
+			args: args{
+				seq:          seq,
+				afterOrEqual: pt.Time(now.Add(1 * time.Second)),
 			},
 			want: 1,
 		},
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now.Add(5 * time.Second),
+				afterOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
 			want: 5,
 		},
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now.Add(5*time.Second - time.Millisecond),
+				afterOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
 			want: 5,
 		},
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now.Add(5*time.Second + time.Millisecond),
+				afterOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
 			want: 6,
 		},
 		{
 			args: args{
 				seq:          seq,
-				afterOrEqual: now.Add(100 * time.Second),
+				afterOrEqual: pt.Time(now.Add(100 * time.Second)),
 			},
 			want: -1,
 		},
@@ -186,7 +220,7 @@ func TestLast(t *testing.T) {
 
 	type args struct {
 		seq           Sequence
-		beforeOrEqual time.Time
+		beforeOrEqual *time.Time
 	}
 	tests := []struct {
 		name string
@@ -196,49 +230,56 @@ func TestLast(t *testing.T) {
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now,
+				beforeOrEqual: nil,
+			},
+			want: len(seq) - 1,
+		},
+		{
+			args: args{
+				seq:           seq,
+				beforeOrEqual: pt.Time(now),
 			},
 			want: 0,
 		},
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now.Add(-1 * time.Second),
+				beforeOrEqual: pt.Time(now.Add(-1 * time.Second)),
 			},
 			want: -1,
 		},
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now.Add(1 * time.Second),
+				beforeOrEqual: pt.Time(now.Add(1 * time.Second)),
 			},
 			want: 1,
 		},
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now.Add(5 * time.Second),
+				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
 			want: 5,
 		},
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now.Add(5*time.Second - time.Millisecond),
+				beforeOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
 			want: 4,
 		},
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now.Add(5*time.Second + time.Millisecond),
+				beforeOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
 			want: 5,
 		},
 		{
 			args: args{
 				seq:           seq,
-				beforeOrEqual: now.Add(100 * time.Second),
+				beforeOrEqual: pt.Time(now.Add(100 * time.Second)),
 			},
 			want: 9,
 		},
@@ -250,4 +291,16 @@ func TestLast(t *testing.T) {
 			}
 		})
 	}
+}
+
+func RandomInt64Sequence(length int) Int64Sequence {
+	now := time.Now()
+	ret := make(Int64Sequence, length)
+	for i := range ret {
+		ret[i] = &Int64Item{
+			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
+			Value: rand.Int63(),
+		}
+	}
+	return ret
 }
