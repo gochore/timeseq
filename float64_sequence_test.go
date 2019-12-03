@@ -137,6 +137,9 @@ func TestFloat64Sequence_Sort(t *testing.T) {
 		{
 			s: RandomFloat64Sequence(10),
 		},
+		{
+			s: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
