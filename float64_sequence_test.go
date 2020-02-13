@@ -256,49 +256,49 @@ func TestFloat64Sequence_First(t *testing.T) {
 			args: args{
 				afterOrEqual: nil,
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now),
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(-1 * time.Second)),
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(1 * time.Second)),
 			},
-			want: seq[1],
+			want: &seq[1],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
-			want: seq[6],
+			want: &seq[6],
 		},
 		{
 			s: seq,
@@ -338,14 +338,14 @@ func TestFloat64Sequence_Last(t *testing.T) {
 			args: args{
 				beforeOrEqual: nil,
 			},
-			want: seq[len(seq)-1],
+			want: &seq[len(seq)-1],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now),
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
@@ -359,35 +359,35 @@ func TestFloat64Sequence_Last(t *testing.T) {
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(1 * time.Second)),
 			},
-			want: seq[1],
+			want: &seq[1],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
-			want: seq[4],
+			want: &seq[4],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(100 * time.Second)),
 			},
-			want: seq[9],
+			want: &seq[9],
 		},
 	}
 	for _, tt := range tests {
@@ -426,11 +426,11 @@ func TestFloat64Sequence_Max(t *testing.T) {
 	}{
 		{
 			s:    seq1,
-			want: seq1[0],
+			want: &seq1[0],
 		},
 		{
 			s:    seq2,
-			want: seq2[1],
+			want: &seq2[1],
 		},
 	}
 	for _, tt := range tests {
@@ -469,11 +469,11 @@ func TestFloat64Sequence_Min(t *testing.T) {
 	}{
 		{
 			s:    seq1,
-			want: seq1[1],
+			want: &seq1[1],
 		},
 		{
 			s:    seq2,
-			want: seq2[0],
+			want: &seq2[0],
 		},
 	}
 	for _, tt := range tests {
@@ -631,7 +631,7 @@ func RandomFloat64Sequence(length int) Float64Sequence {
 	now := time.Now()
 	ret := make(Float64Sequence, length)
 	for i := range ret {
-		ret[i] = &Float64Item{
+		ret[i] = Float64Item{
 			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
 			Value: rand.NormFloat64(),
 		}
