@@ -13,7 +13,7 @@ type Float64Item struct {
 }
 
 // Float64Sequence is the implement of Sequence for float64
-type Float64Sequence []*Float64Item
+type Float64Sequence []Float64Item
 
 // Len implements Sequence.Len
 func (s Float64Sequence) Len() int {
@@ -57,7 +57,8 @@ func (s Float64Sequence) First(afterOrEqual *time.Time) *Float64Item {
 	if i < 0 {
 		return nil
 	}
-	return s[i]
+	ret := s[i]
+	return &ret
 }
 
 // Last return the last item or nil if not exists, would sort sequence if it is not sorted
@@ -69,18 +70,23 @@ func (s Float64Sequence) Last(beforeOrEqual *time.Time) *Float64Item {
 	if i < 0 {
 		return nil
 	}
-	return s[i]
+	ret := s[i]
+	return &ret
 }
 
 // Max return the first item which has the max value, or nil if not exists
 func (s Float64Sequence) Max() *Float64Item {
 	var max *Float64Item
-	for _, v := range s {
+	for i, v := range s {
 		if max == nil {
-			max = v
+			max = &s[i]
 		} else if v.Value > max.Value {
-			max = v
+			max = &s[i]
 		}
+	}
+	if max != nil {
+		value := *max
+		max = &value
 	}
 	return max
 }
@@ -88,12 +94,16 @@ func (s Float64Sequence) Max() *Float64Item {
 // Min return the first item which has the min value, or nil if not exists
 func (s Float64Sequence) Min() *Float64Item {
 	var min *Float64Item
-	for _, v := range s {
+	for i, v := range s {
 		if min == nil {
-			min = v
+			min = &s[i]
 		} else if v.Value < min.Value {
-			min = v
+			min = &s[i]
 		}
+	}
+	if min != nil {
+		value := *min
+		min = &value
 	}
 	return min
 }

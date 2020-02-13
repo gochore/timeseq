@@ -3,6 +3,7 @@ package timeseq
 import (
 	"math/rand"
 	"reflect"
+	"runtime"
 	"sort"
 	"testing"
 	"time"
@@ -137,6 +138,9 @@ func TestInt64Sequence_Sort(t *testing.T) {
 		{
 			s: RandomInt64Sequence(10),
 		},
+		{
+			s: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -252,49 +256,49 @@ func TestInt64Sequence_First(t *testing.T) {
 			args: args{
 				afterOrEqual: nil,
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now),
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(-1 * time.Second)),
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(1 * time.Second)),
 			},
-			want: seq[1],
+			want: &seq[1],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				afterOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
-			want: seq[6],
+			want: &seq[6],
 		},
 		{
 			s: seq,
@@ -334,14 +338,14 @@ func TestInt64Sequence_Last(t *testing.T) {
 			args: args{
 				beforeOrEqual: nil,
 			},
-			want: seq[len(seq)-1],
+			want: &seq[len(seq)-1],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now),
 			},
-			want: seq[0],
+			want: &seq[0],
 		},
 		{
 			s: seq,
@@ -355,35 +359,35 @@ func TestInt64Sequence_Last(t *testing.T) {
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(1 * time.Second)),
 			},
-			want: seq[1],
+			want: &seq[1],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(5 * time.Second)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(5*time.Second - time.Millisecond)),
 			},
-			want: seq[4],
+			want: &seq[4],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(5*time.Second + time.Millisecond)),
 			},
-			want: seq[5],
+			want: &seq[5],
 		},
 		{
 			s: seq,
 			args: args{
 				beforeOrEqual: pt.Time(now.Add(100 * time.Second)),
 			},
-			want: seq[9],
+			want: &seq[9],
 		},
 	}
 	for _, tt := range tests {
@@ -422,11 +426,11 @@ func TestInt64Sequence_Max(t *testing.T) {
 	}{
 		{
 			s:    seq1,
-			want: seq1[0],
+			want: &seq1[0],
 		},
 		{
 			s:    seq2,
-			want: seq2[1],
+			want: &seq2[1],
 		},
 	}
 	for _, tt := range tests {
@@ -465,11 +469,11 @@ func TestInt64Sequence_Min(t *testing.T) {
 	}{
 		{
 			s:    seq1,
-			want: seq1[1],
+			want: &seq1[1],
 		},
 		{
 			s:    seq2,
-			want: seq2[0],
+			want: &seq2[0],
 		},
 	}
 	for _, tt := range tests {
@@ -613,11 +617,21 @@ func TestInt64Sequence_Percentile(t *testing.T) {
 	}
 }
 
+func BenchmarkInt64Sequence_GC(b *testing.B) {
+	b.ReportAllocs()
+
+	length := 1000
+	for i := 0; i < b.N; i++ {
+		_ = RandomInt64Sequence(length)
+		runtime.GC()
+	}
+}
+
 func RandomInt64Sequence(length int) Int64Sequence {
 	now := time.Now()
 	ret := make(Int64Sequence, length)
 	for i := range ret {
-		ret[i] = &Int64Item{
+		ret[i] = Int64Item{
 			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
 			Value: rand.Int63(),
 		}
