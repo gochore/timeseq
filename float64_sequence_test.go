@@ -3,6 +3,7 @@ package timeseq
 import (
 	"math/rand"
 	"reflect"
+	"runtime"
 	"sort"
 	"testing"
 	"time"
@@ -613,6 +614,16 @@ func TestFloat64Sequence_Percentile(t *testing.T) {
 				t.Errorf("Float64Sequence.Percentile() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkFloat64Sequence_GC(b *testing.B) {
+	b.ReportAllocs()
+
+	length := 1000
+	for i := 0; i < b.N; i++ {
+		_ = RandomFloat64Sequence(length)
+		runtime.GC()
 	}
 }
 
