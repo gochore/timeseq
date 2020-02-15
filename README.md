@@ -35,7 +35,7 @@ func main() {
 			Value: 2,
 		},
 	}
-	seq = append(seq, &timeseq.Int64Item{
+	seq = append(seq, timeseq.Int64Item{
 		Time:  now.Add(-2 * time.Second),
 		Value: -1,
 	})
