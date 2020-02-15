@@ -158,6 +158,9 @@ func TestFloat64Sequence_Range(t *testing.T) {
 	for i := range seq {
 		seq[i].Time = now.Add(time.Duration(i) * time.Second)
 	}
+	rand.Shuffle(seq.Len(), func(i, j int) {
+		seq[i], seq[j] = seq[j], seq[i]
+	})
 
 	type args struct {
 		afterOrEqual  *time.Time
@@ -241,6 +244,9 @@ func TestFloat64Sequence_First(t *testing.T) {
 	for i := range seq {
 		seq[i].Time = now.Add(time.Duration(i) * time.Second)
 	}
+	rand.Shuffle(seq.Len(), func(i, j int) {
+		seq[i], seq[j] = seq[j], seq[i]
+	})
 
 	type args struct {
 		afterOrEqual *time.Time
@@ -323,6 +329,9 @@ func TestFloat64Sequence_Last(t *testing.T) {
 	for i := range seq {
 		seq[i].Time = now.Add(time.Duration(i) * time.Second)
 	}
+	rand.Shuffle(seq.Len(), func(i, j int) {
+		seq[i], seq[j] = seq[j], seq[i]
+	})
 
 	type args struct {
 		beforeOrEqual *time.Time
@@ -525,6 +534,10 @@ func TestFloat64Sequence_Average(t *testing.T) {
 			s:    seq,
 			want: 49.5,
 		},
+		{
+			s:    nil,
+			want: 0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -598,6 +611,13 @@ func TestFloat64Sequence_Percentile(t *testing.T) {
 				pct: -0.1,
 			},
 			want: 1,
+		},
+		{
+			s: nil,
+			args: args{
+				pct: 1,
+			},
+			want: 0,
 		},
 	}
 	for _, tt := range tests {
