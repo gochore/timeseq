@@ -667,6 +667,20 @@ func TestMergeFloat32(t *testing.T) {
 			want: seq,
 		},
 		{
+			name: "reverse",
+			args: args{
+				seq1: seq[3:10],
+				seq2: seq[0:7],
+				fn: func(item1, item2 *Int64Item) *Int64Item {
+					if item1 != nil {
+						return item1
+					}
+					return item2
+				},
+			},
+			want: seq,
+		},
+		{
 			name: "nil fn",
 			args: args{
 				seq1: seq[0:7],
