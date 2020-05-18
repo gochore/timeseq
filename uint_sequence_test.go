@@ -671,7 +671,7 @@ func TestMergeUint(t *testing.T) {
 			args: args{
 				seq1: seq[3:10],
 				seq2: seq[0:7],
-				fn: func(item1, item2 *Int64Item) *Int64Item {
+				fn: func(item1, item2 *UintItem) *UintItem {
 					if item1 != nil {
 						return item1
 					}
