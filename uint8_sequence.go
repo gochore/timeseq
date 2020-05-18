@@ -153,3 +153,39 @@ func (s Uint8Sequence) Percentile(pct float64) uint8 {
 
 	return values[index]
 }
+
+// MergeUint8 merge two uint8} seuquence into one
+func MergeUint8(seq1, seq2 Uint8Sequence, fn func(item1, item2 *Uint8Item) *Uint8Item) Uint8Sequence {
+	if fn == nil {
+		return nil
+	}
+
+	var ret Uint8Sequence
+	for i1, i2 := 0, 0; i1 < seq1.Len() || i2 < seq2.Len(); {
+		var item *Uint8Item
+		switch {
+		case i1 == seq1.Len():
+			item = fn(nil, &seq2[i2])
+			i2++
+		case i2 == seq2.Len():
+			item = fn(&seq1[i1], nil)
+			i1++
+		case seq1[i1].Time.Equal(seq2[i2].Time):
+			item = fn(&seq1[i1], &seq2[i2])
+			i1++
+			i2++
+		case seq1[i1].Time.Before(seq2[i2].Time):
+			item = fn(&seq1[i1], nil)
+			i1++
+		case seq1[i1].Time.After(seq2[i2].Time):
+			item = fn(nil, &seq2[i2])
+			i2++
+		}
+		if item != nil {
+			ret = append(ret, *item)
+		}
+	}
+
+	Sort(ret)
+	return ret
+}

@@ -33,7 +33,6 @@ func main() {
 		"float64",
 		"int",
 		"uint",
-		"uintptr",
 		"uint8",
 		"int32",
 	}

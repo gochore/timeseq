@@ -153,3 +153,39 @@ func (s Int32Sequence) Percentile(pct float64) int32 {
 
 	return values[index]
 }
+
+// MergeInt32 merge two int32} seuquence into one
+func MergeInt32(seq1, seq2 Int32Sequence, fn func(item1, item2 *Int32Item) *Int32Item) Int32Sequence {
+	if fn == nil {
+		return nil
+	}
+
+	var ret Int32Sequence
+	for i1, i2 := 0, 0; i1 < seq1.Len() || i2 < seq2.Len(); {
+		var item *Int32Item
+		switch {
+		case i1 == seq1.Len():
+			item = fn(nil, &seq2[i2])
+			i2++
+		case i2 == seq2.Len():
+			item = fn(&seq1[i1], nil)
+			i1++
+		case seq1[i1].Time.Equal(seq2[i2].Time):
+			item = fn(&seq1[i1], &seq2[i2])
+			i1++
+			i2++
+		case seq1[i1].Time.Before(seq2[i2].Time):
+			item = fn(&seq1[i1], nil)
+			i1++
+		case seq1[i1].Time.After(seq2[i2].Time):
+			item = fn(nil, &seq2[i2])
+			i2++
+		}
+		if item != nil {
+			ret = append(ret, *item)
+		}
+	}
+
+	Sort(ret)
+	return ret
+}
