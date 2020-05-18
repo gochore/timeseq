@@ -8,50 +8,50 @@ import (
 	"time"
 )
 
-// Float64Item is item of Float64Sequence
-type Float64Item struct {
+// UintItem is item of UintSequence
+type UintItem struct {
 	Time  time.Time
-	Value float64
+	Value uint
 }
 
-// Float64Sequence is the implement of Sequence for float64
-type Float64Sequence []Float64Item
+// UintSequence is the implement of Sequence for uint
+type UintSequence []UintItem
 
 // Len implements Sequence.Len
-func (s Float64Sequence) Len() int {
+func (s UintSequence) Len() int {
 	return len(s)
 }
 
 // Swap implements Sequence.Swap
-func (s Float64Sequence) Swap(i, j int) {
+func (s UintSequence) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
 // Time implements Sequence.Time
-func (s Float64Sequence) Time(i int) time.Time {
+func (s UintSequence) Time(i int) time.Time {
 	return s[i].Time
 }
 
 // Slice implements Sequence.Slice
-func (s Float64Sequence) Slice(i, j int) Sequence {
+func (s UintSequence) Slice(i, j int) Sequence {
 	return s[i:j]
 }
 
 // Sort will sort sequence by time
-func (s Float64Sequence) Sort() {
+func (s UintSequence) Sort() {
 	Sort(s)
 }
 
 // Range return sub sequence, would sort sequence if it is not sorted
-func (s Float64Sequence) Range(afterOrEqual, beforeOrEqual *time.Time) Float64Sequence {
+func (s UintSequence) Range(afterOrEqual, beforeOrEqual *time.Time) UintSequence {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
-	return Range(s, afterOrEqual, beforeOrEqual).(Float64Sequence)
+	return Range(s, afterOrEqual, beforeOrEqual).(UintSequence)
 }
 
 // First return the first item or nil if not exists, would sort sequence if it is not sorted
-func (s Float64Sequence) First(afterOrEqual *time.Time) *Float64Item {
+func (s UintSequence) First(afterOrEqual *time.Time) *UintItem {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
@@ -64,7 +64,7 @@ func (s Float64Sequence) First(afterOrEqual *time.Time) *Float64Item {
 }
 
 // Last return the last item or nil if not exists, would sort sequence if it is not sorted
-func (s Float64Sequence) Last(beforeOrEqual *time.Time) *Float64Item {
+func (s UintSequence) Last(beforeOrEqual *time.Time) *UintItem {
 	if !sort.IsSorted(sortableSequence{s}) {
 		s.Sort()
 	}
@@ -77,8 +77,8 @@ func (s Float64Sequence) Last(beforeOrEqual *time.Time) *Float64Item {
 }
 
 // Max return the first item which has the max value, or nil if not exists
-func (s Float64Sequence) Max() *Float64Item {
-	var max *Float64Item
+func (s UintSequence) Max() *UintItem {
+	var max *UintItem
 	for i, v := range s {
 		if max == nil {
 			max = &s[i]
@@ -94,8 +94,8 @@ func (s Float64Sequence) Max() *Float64Item {
 }
 
 // Min return the first item which has the min value, or nil if not exists
-func (s Float64Sequence) Min() *Float64Item {
-	var min *Float64Item
+func (s UintSequence) Min() *UintItem {
+	var min *UintItem
 	for i, v := range s {
 		if min == nil {
 			min = &s[i]
@@ -111,8 +111,8 @@ func (s Float64Sequence) Min() *Float64Item {
 }
 
 // Sum return the value's sum
-func (s Float64Sequence) Sum() float64 {
-	var sum float64
+func (s UintSequence) Sum() uint {
+	var sum uint
 	for _, v := range s {
 		sum += v.Value
 	}
@@ -120,21 +120,21 @@ func (s Float64Sequence) Sum() float64 {
 }
 
 // Average return the value's average
-func (s Float64Sequence) Average() float64 {
+func (s UintSequence) Average() uint {
 	if len(s) == 0 {
 		return 0
 	}
 
-	return float64(float64(s.Sum()) / float64(len(s)))
+	return uint(float64(s.Sum()) / float64(len(s)))
 }
 
 // Percentile return (pct)th percentile
-func (s Float64Sequence) Percentile(pct float64) float64 {
+func (s UintSequence) Percentile(pct float64) uint {
 	if pct > 1 || pct < 0 {
 		panic(errors.New("percentile must be [0, 1]"))
 	}
 
-	var values []float64
+	var values []uint
 	for _, v := range s {
 		values = append(values, v.Value)
 	}
@@ -154,15 +154,15 @@ func (s Float64Sequence) Percentile(pct float64) float64 {
 	return values[index]
 }
 
-// MergeFloat64 merge two float64} seuquence into one
-func MergeFloat64(seq1, seq2 Float64Sequence, fn func(item1, item2 *Float64Item) *Float64Item) Float64Sequence {
+// MergeUint merge two uint} seuquence into one
+func MergeUint(seq1, seq2 UintSequence, fn func(item1, item2 *UintItem) *UintItem) UintSequence {
 	if fn == nil {
 		return nil
 	}
 
-	var ret Float64Sequence
+	var ret UintSequence
 	for i1, i2 := 0, 0; i1 < seq1.Len() || i2 < seq2.Len(); {
-		var item *Float64Item
+		var item *UintItem
 		switch {
 		case i1 == seq1.Len():
 			item = fn(nil, &seq2[i2])
