@@ -20,6 +20,11 @@ func main() {
 		panic(err)
 	}
 
+	testTmpl, err := template.ParseFiles("cmd/generate/x_sequence_test.go.tmpl")
+	if err != nil {
+		panic(err)
+	}
+
 	types := []string{
 		"uint8",
 		"uint16",
@@ -38,25 +43,42 @@ func main() {
 	}
 
 	for _, v := range types {
-		generate(tmpl, Meta{
+		generate(tmpl, testTmpl, Meta{
 			Name: strings.Title(v),
 			Type: v,
 		})
 	}
 }
 
-func generate(tmpl *template.Template, meta Meta) {
-	output := &bytes.Buffer{}
-	if err := tmpl.Execute(output, meta); err != nil {
-		panic(err)
-	}
+func generate(tmpl, testTmpl *template.Template, meta Meta) {
+	{
+		output := &bytes.Buffer{}
+		if err := tmpl.Execute(output, meta); err != nil {
+			panic(err)
+		}
 
-	src, err := format.Source(output.Bytes())
-	if err != nil {
-		panic(err)
-	}
+		src, err := format.Source(output.Bytes())
+		if err != nil {
+			panic(err)
+		}
 
-	if err := ioutil.WriteFile(fmt.Sprintf("%s_sequence.go", meta.Type), src, 0666); err != nil {
-		panic(err)
+		if err := ioutil.WriteFile(fmt.Sprintf("%s_sequence.go", meta.Type), src, 0666); err != nil {
+			panic(err)
+		}
+	}
+	{
+		output := &bytes.Buffer{}
+		if err := testTmpl.Execute(output, meta); err != nil {
+			panic(err)
+		}
+
+		src, err := format.Source(output.Bytes())
+		if err != nil {
+			panic(err)
+		}
+
+		if err := ioutil.WriteFile(fmt.Sprintf("%s_sequence_test.go", meta.Type), src, 0666); err != nil {
+			panic(err)
+		}
 	}
 }

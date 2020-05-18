@@ -13,18 +13,18 @@ import (
 	"github.com/gochore/pt"
 )
 
-func TestFloat64Sequence_Len(t *testing.T) {
+func TestInt16Sequence_Len(t *testing.T) {
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		want int
 	}{
 		{
-			s:    RandomFloat64Sequence(10),
+			s:    RandomInt16Sequence(10),
 			want: 10,
 		},
 		{
-			s:    RandomFloat64Sequence(0),
+			s:    RandomInt16Sequence(0),
 			want: 0,
 		},
 		{
@@ -35,24 +35,24 @@ func TestFloat64Sequence_Len(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Len(); got != tt.want {
-				t.Errorf("Float64Sequence.Len() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Len() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Swap(t *testing.T) {
+func TestInt16Sequence_Swap(t *testing.T) {
 	type args struct {
 		i int
 		j int
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
 	}{
 		{
-			s: RandomFloat64Sequence(10),
+			s: RandomInt16Sequence(10),
 			args: args{
 				i: 0,
 				j: 5,
@@ -65,14 +65,14 @@ func TestFloat64Sequence_Swap(t *testing.T) {
 			tj := tt.s.Time(tt.args.j)
 			tt.s.Swap(tt.args.i, tt.args.j)
 			if ti != tt.s.Time(tt.args.j) || tj != tt.s.Time(tt.args.i) {
-				t.Errorf("Float64Sequence.Swap() failed")
+				t.Errorf("Int16Sequence.Swap() failed")
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Time(t *testing.T) {
-	seq := RandomFloat64Sequence(10)
+func TestInt16Sequence_Time(t *testing.T) {
+	seq := RandomInt16Sequence(10)
 	seq.Sort()
 
 	type args struct {
@@ -80,7 +80,7 @@ func TestFloat64Sequence_Time(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
 		want time.Time
 	}{
@@ -95,14 +95,14 @@ func TestFloat64Sequence_Time(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Time(tt.args.i); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.Time() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Time() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Slice(t *testing.T) {
-	seq := RandomFloat64Sequence(10)
+func TestInt16Sequence_Slice(t *testing.T) {
+	seq := RandomInt16Sequence(10)
 
 	type args struct {
 		i int
@@ -110,7 +110,7 @@ func TestFloat64Sequence_Slice(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
 		want Sequence
 	}{
@@ -126,19 +126,19 @@ func TestFloat64Sequence_Slice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Slice(tt.args.i, tt.args.j); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.Slice() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Slice() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Sort(t *testing.T) {
+func TestInt16Sequence_Sort(t *testing.T) {
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 	}{
 		{
-			s: RandomFloat64Sequence(10),
+			s: RandomInt16Sequence(10),
 		},
 		{
 			s: nil,
@@ -148,15 +148,15 @@ func TestFloat64Sequence_Sort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.s.Sort()
 			if !sort.IsSorted(sortableSequence{tt.s}) {
-				t.Error("Float64Sequence.Slice() failed")
+				t.Error("Int16Sequence.Slice() failed")
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Range(t *testing.T) {
+func TestInt16Sequence_Range(t *testing.T) {
 	now := time.Now()
-	seq := RandomFloat64Sequence(10)
+	seq := RandomInt16Sequence(10)
 	for i := range seq {
 		seq[i].Time = now.Add(time.Duration(i) * time.Second)
 	}
@@ -170,9 +170,9 @@ func TestFloat64Sequence_Range(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
-		want Float64Sequence
+		want Int16Sequence
 	}{
 		{
 			s: seq,
@@ -234,15 +234,15 @@ func TestFloat64Sequence_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Range(tt.args.afterOrEqual, tt.args.beforeOrEqual); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.Range() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Range() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_First(t *testing.T) {
+func TestInt16Sequence_First(t *testing.T) {
 	now := time.Now()
-	seq := RandomFloat64Sequence(10)
+	seq := RandomInt16Sequence(10)
 	for i := range seq {
 		seq[i].Time = now.Add(time.Duration(i) * time.Second)
 	}
@@ -255,9 +255,9 @@ func TestFloat64Sequence_First(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
-		want *Float64Item
+		want *Int16Item
 	}{
 		{
 			s: seq,
@@ -319,15 +319,15 @@ func TestFloat64Sequence_First(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.First(tt.args.afterOrEqual); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.First() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.First() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Last(t *testing.T) {
+func TestInt16Sequence_Last(t *testing.T) {
 	now := time.Now()
-	seq := RandomFloat64Sequence(10)
+	seq := RandomInt16Sequence(10)
 	for i := range seq {
 		seq[i].Time = now.Add(time.Duration(i) * time.Second)
 	}
@@ -340,9 +340,9 @@ func TestFloat64Sequence_Last(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
-		want *Float64Item
+		want *Int16Item
 	}{
 		{
 			s: seq,
@@ -404,14 +404,14 @@ func TestFloat64Sequence_Last(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Last(tt.args.beforeOrEqual); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.Last() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Last() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Max(t *testing.T) {
-	seq1 := RandomFloat64Sequence(10)
+func TestInt16Sequence_Max(t *testing.T) {
+	seq1 := RandomInt16Sequence(10)
 	seq1.Sort()
 	for i := range seq1 {
 		if i == 0 {
@@ -420,7 +420,7 @@ func TestFloat64Sequence_Max(t *testing.T) {
 			seq1[i].Value = 0
 		}
 	}
-	seq2 := RandomFloat64Sequence(10)
+	seq2 := RandomInt16Sequence(10)
 	seq2.Sort()
 	for i := range seq2 {
 		if i == 0 {
@@ -432,8 +432,8 @@ func TestFloat64Sequence_Max(t *testing.T) {
 
 	tests := []struct {
 		name string
-		s    Float64Sequence
-		want *Float64Item
+		s    Int16Sequence
+		want *Int16Item
 	}{
 		{
 			s:    seq1,
@@ -447,14 +447,14 @@ func TestFloat64Sequence_Max(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Max(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.Max() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Max() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Min(t *testing.T) {
-	seq1 := RandomFloat64Sequence(10)
+func TestInt16Sequence_Min(t *testing.T) {
+	seq1 := RandomInt16Sequence(10)
 	seq1.Sort()
 	for i := range seq1 {
 		if i == 0 {
@@ -463,7 +463,7 @@ func TestFloat64Sequence_Min(t *testing.T) {
 			seq1[i].Value = 0
 		}
 	}
-	seq2 := RandomFloat64Sequence(10)
+	seq2 := RandomInt16Sequence(10)
 	seq2.Sort()
 	for i := range seq2 {
 		if i == 0 {
@@ -475,8 +475,8 @@ func TestFloat64Sequence_Min(t *testing.T) {
 
 	tests := []struct {
 		name string
-		s    Float64Sequence
-		want *Float64Item
+		s    Int16Sequence
+		want *Int16Item
 	}{
 		{
 			s:    seq1,
@@ -490,22 +490,22 @@ func TestFloat64Sequence_Min(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Min(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64Sequence.Min() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Min() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Sum(t *testing.T) {
-	seq := RandomFloat64Sequence(10)
+func TestInt16Sequence_Sum(t *testing.T) {
+	seq := RandomInt16Sequence(10)
 	for i := range seq {
-		seq[i].Value = float64(i)
+		seq[i].Value = int16(i)
 	}
 
 	tests := []struct {
 		name string
-		s    Float64Sequence
-		want float64
+		s    Int16Sequence
+		want int16
 	}{
 		{
 			s:    seq,
@@ -515,22 +515,22 @@ func TestFloat64Sequence_Sum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Sum(); got != tt.want {
-				t.Errorf("Float64Sequence.Sum() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Sum() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Average(t *testing.T) {
-	seq := RandomFloat64Sequence(10)
+func TestInt16Sequence_Average(t *testing.T) {
+	seq := RandomInt16Sequence(10)
 	for i := range seq {
-		seq[i].Value = float64(i) * 2
+		seq[i].Value = int16(i) * 2
 	}
 
 	tests := []struct {
 		name string
-		s    Float64Sequence
-		want float64
+		s    Int16Sequence
+		want int16
 	}{
 		{
 			s:    seq,
@@ -544,16 +544,16 @@ func TestFloat64Sequence_Average(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Average(); got != tt.want {
-				t.Errorf("Float64Sequence.Average() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Average() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Sequence_Percentile(t *testing.T) {
-	seq := RandomFloat64Sequence(100)
+func TestInt16Sequence_Percentile(t *testing.T) {
+	seq := RandomInt16Sequence(100)
 	for i := range seq {
-		seq[i].Value = float64(i) + 1
+		seq[i].Value = int16(i) + 1
 	}
 
 	type args struct {
@@ -561,9 +561,9 @@ func TestFloat64Sequence_Percentile(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		s    Float64Sequence
+		s    Int16Sequence
 		args args
-		want float64
+		want int16
 	}{
 		{
 			s: seq,
@@ -629,35 +629,35 @@ func TestFloat64Sequence_Percentile(t *testing.T) {
 					if tt.args.pct > 1 || tt.args.pct < 0 {
 						return
 					}
-					t.Errorf("Float64Sequence.Percentile() failed: %v", r)
+					t.Errorf("Int16Sequence.Percentile() failed: %v", r)
 				}
 			}()
 			if got := tt.s.Percentile(tt.args.pct); got != tt.want {
-				t.Errorf("Float64Sequence.Percentile() = %v, want %v", got, tt.want)
+				t.Errorf("Int16Sequence.Percentile() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestMergeFloat64(t *testing.T) {
-	seq := RandomFloat64Sequence(10)
+func TestMergeInt16(t *testing.T) {
+	seq := RandomInt16Sequence(10)
 	seq.Sort()
 	type args struct {
-		seq1 Float64Sequence
-		seq2 Float64Sequence
-		fn   func(item1, item2 *Float64Item) *Float64Item
+		seq1 Int16Sequence
+		seq2 Int16Sequence
+		fn   func(item1, item2 *Int16Item) *Int16Item
 	}
 	tests := []struct {
 		name string
 		args args
-		want Float64Sequence
+		want Int16Sequence
 	}{
 		{
 			name: "regular",
 			args: args{
 				seq1: seq[0:7],
 				seq2: seq[3:10],
-				fn: func(item1, item2 *Float64Item) *Float64Item {
+				fn: func(item1, item2 *Int16Item) *Int16Item {
 					if item1 != nil {
 						return item1
 					}
@@ -678,20 +678,20 @@ func TestMergeFloat64(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MergeFloat64(tt.args.seq1, tt.args.seq2, tt.args.fn); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MergeFloat64() = %v, want %v", got, tt.want)
+			if got := MergeInt16(tt.args.seq1, tt.args.seq2, tt.args.fn); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MergeInt16() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func RandomFloat64Sequence(length int) Float64Sequence {
+func RandomInt16Sequence(length int) Int16Sequence {
 	now := time.Now()
-	ret := make(Float64Sequence, length)
+	ret := make(Int16Sequence, length)
 	for i := range ret {
-		ret[i] = Float64Item{
+		ret[i] = Int16Item{
 			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
-			Value: float64(rand.Float64() * float64(math.MaxInt64)),
+			Value: int16(rand.Float64() * float64(math.MaxInt64)),
 		}
 	}
 	return ret
