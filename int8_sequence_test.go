@@ -703,8 +703,12 @@ func RandomInt8Sequence(length int) Int8Sequence {
 	now := time.Now()
 	ret := make(Int8Sequence, length)
 	for i := range ret {
+		delta := time.Duration(i) * time.Second
+		if rand.Float64() < 0.5 {
+			delta = -delta
+		}
 		ret[i] = Int8Item{
-			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
+			Time:  now.Add(delta),
 			Value: int8(rand.Float64() * float64(math.MaxInt64)),
 		}
 	}

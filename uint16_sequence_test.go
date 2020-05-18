@@ -703,8 +703,12 @@ func RandomUint16Sequence(length int) Uint16Sequence {
 	now := time.Now()
 	ret := make(Uint16Sequence, length)
 	for i := range ret {
+		delta := time.Duration(i) * time.Second
+		if rand.Float64() < 0.5 {
+			delta = -delta
+		}
 		ret[i] = Uint16Item{
-			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
+			Time:  now.Add(delta),
 			Value: uint16(rand.Float64() * float64(math.MaxInt64)),
 		}
 	}

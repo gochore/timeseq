@@ -703,8 +703,12 @@ func RandomIntSequence(length int) IntSequence {
 	now := time.Now()
 	ret := make(IntSequence, length)
 	for i := range ret {
+		delta := time.Duration(i) * time.Second
+		if rand.Float64() < 0.5 {
+			delta = -delta
+		}
 		ret[i] = IntItem{
-			Time:  now.Add(time.Duration(rand.Intn(length)) * time.Second),
+			Time:  now.Add(delta),
 			Value: int(rand.Float64() * float64(math.MaxInt64)),
 		}
 	}
