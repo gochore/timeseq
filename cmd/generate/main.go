@@ -38,7 +38,7 @@ func main() {
 	}
 
 	for _, v := range types {
-		generate( tmpl, Meta{
+		generate(tmpl, Meta{
 			Name: strings.Title(v),
 			Type: v,
 		})
