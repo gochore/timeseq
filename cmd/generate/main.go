@@ -21,8 +21,21 @@ func main() {
 	}
 
 	types := []string{
-		"float64",
+		"uint8",
+		"uint16",
+		"uint32",
+		"uint64",
+		"int8",
+		"int16",
+		"int32",
 		"int64",
+		"float32",
+		"float64",
+		"int",
+		"uint",
+		"uintptr",
+		"uint8",
+		"int32",
 	}
 
 	for _, v := range types {
