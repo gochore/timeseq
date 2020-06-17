@@ -165,20 +165,26 @@ func MergeUint16(seq1, seq2 Uint16Sequence, fn func(item1, item2 *Uint16Item) *U
 		var item *Uint16Item
 		switch {
 		case i1 == seq1.Len():
-			item = fn(nil, &seq2[i2])
+			v2 := seq2[i2]
+			item = fn(nil, &v2)
 			i2++
 		case i2 == seq2.Len():
-			item = fn(&seq1[i1], nil)
+			v1 := seq1[i1]
+			item = fn(&v1, nil)
 			i1++
 		case seq1[i1].Time.Equal(seq2[i2].Time):
-			item = fn(&seq1[i1], &seq2[i2])
+			v1 := seq1[i1]
+			v2 := seq2[i2]
+			item = fn(&v1, &v2)
 			i1++
 			i2++
 		case seq1[i1].Time.Before(seq2[i2].Time):
-			item = fn(&seq1[i1], nil)
+			v1 := seq1[i1]
+			item = fn(&v1, nil)
 			i1++
 		case seq1[i1].Time.After(seq2[i2].Time):
-			item = fn(nil, &seq2[i2])
+			v2 := seq2[i2]
+			item = fn(nil, &v2)
 			i2++
 		}
 		if item != nil {
