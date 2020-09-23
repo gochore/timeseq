@@ -1,7 +1,7 @@
 package timeseq
 
 import (
-	"fmt"
+	"errors"
 	"sort"
 	"time"
 )
@@ -13,6 +13,22 @@ type Int struct {
 
 type Ints []Int
 
+func (s Ints) Len() int {
+	return len(s)
+}
+
+func (s Ints) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s Ints) Time(i int) time.Time {
+	return s[i].Time
+}
+
+func (s Ints) Slice(i, j int) Slice {
+	return s[i:j]
+}
+
 type IntSeq struct {
 	slice      Ints
 	timeIndex  map[timeKey][]int
@@ -20,9 +36,10 @@ type IntSeq struct {
 	valueSlice []int
 }
 
-func NewIntSeq(slice Ints) *IntSeq {
-	s := make(Ints, len(slice))
-	copy(s, slice)
+func NewIntSeq(ints Ints) *IntSeq {
+	slice := make(Ints, len(ints))
+	copy(slice, ints)
+	Sort(slice)
 	sort.SliceStable(slice, func(i, j int) bool {
 		return slice[i].Time.Before(slice[j].Time)
 	})
@@ -30,24 +47,29 @@ func NewIntSeq(slice Ints) *IntSeq {
 }
 
 func newIntSeq(slice Ints) *IntSeq {
-	timeIndex := make(map[timeKey][]int, len(slice))
-	valueIndex := make(map[int][]int, len(slice))
-	valueSlice := make([]int, len(slice))
-	for i, v := range slice {
+	ret := &IntSeq{
+		slice: slice,
+	}
+	ret.buildIndex()
+	return ret
+}
+
+func (s *IntSeq) buildIndex() {
+	timeIndex := make(map[timeKey][]int, len(s.slice))
+	valueIndex := make(map[int][]int, len(s.slice))
+	valueSlice := s.valueSlice[:0]
+	for i, v := range s.slice {
 		k := newTimeKey(v.Time)
 		timeIndex[k] = append(timeIndex[k], i)
 		valueIndex[v.Value] = append(valueIndex[v.Value], i)
-		valueSlice[i] = i
+		valueSlice = append(valueSlice, i)
 	}
 	sort.SliceStable(valueSlice, func(i, j int) bool {
-		return slice[valueSlice[i]].Value < slice[valueSlice[j]].Value
+		return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
 	})
-	return &IntSeq{
-		slice:      slice,
-		timeIndex:  timeIndex,
-		valueIndex: valueIndex,
-		valueSlice: valueSlice,
-	}
+	s.timeIndex = timeIndex
+	s.valueIndex = valueIndex
+	s.valueSlice = valueSlice
 }
 
 func (s *IntSeq) Ints() Ints {
@@ -69,8 +91,8 @@ func (s *IntSeq) Time(t time.Time) Ints {
 		return nil
 	}
 	ret := make(Ints, len(index))
-	for _, i := range index {
-		ret[i] = s.slice[i]
+	for i, v := range index {
+		ret[i] = s.slice[v]
 	}
 	return ret
 }
@@ -81,8 +103,8 @@ func (s *IntSeq) Value(v int) Ints {
 		return nil
 	}
 	ret := make(Ints, len(index))
-	for _, i := range index {
-		ret[i] = s.slice[i]
+	for i, v := range index {
+		ret[i] = s.slice[v]
 	}
 	return ret
 }
@@ -149,7 +171,7 @@ func (s *IntSeq) Last() Int {
 	return s.slice[len(s.slice)-1]
 }
 
-func (s IntSeq) Percentile(pct float64) Int {
+func (s *IntSeq) Percentile(pct float64) Int {
 	if len(s.slice) == 0 {
 		return Int{}
 	}
@@ -166,68 +188,60 @@ func (s IntSeq) Percentile(pct float64) Int {
 	return s.slice[s.valueSlice[i]]
 }
 
-func (s IntSeq) Range(interval Interval) *IntSeq {
-	i := 0
-	if interval.NotBefore != nil {
-		i = sort.Search(len(s.slice), func(i int) bool {
-			return !s.slice[i].Time.Before(*interval.NotBefore)
-		})
-	}
-	j := len(s.slice)
-	if interval.NotAfter != nil {
-		j = sort.Search(len(s.slice), func(j int) bool {
-			return !s.slice[j].Time.Before(*interval.NotBefore)
-		})
-		if j < len(s.slice) && s.slice[j].Time.Equal(*interval.NotBefore) {
-			j++
-		}
-	}
-	return newIntSeq(s.slice[i:j])
+func (s *IntSeq) Range(interval Interval) *IntSeq {
+	slice := Range(s.slice, interval).(Ints)
+	return newIntSeq(slice)
 }
 
-func (s IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) error {
-	if len(slices) == 0 {
+func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, ints ...Ints) error {
+	if fn == nil {
+		return errors.New("nil fn")
+	}
+
+	if len(ints) == 0 {
 		return nil
 	}
 
-	if fn == nil {
-		return fmt.Errorf("nil fn")
-	}
-
-	seq1 := s.slice
-	for _, seq2 := range slices {
+	slice1 := s.slice
+	for _, slice2 := range ints {
+		if !IsSorted(slice2) {
+			temp := make(Ints, len(slice2))
+			copy(temp, slice2)
+			Sort(temp)
+			slice2 = temp
+		}
 		var got Ints
-		for i1, i2 := 0, 0; i1 < len(seq1) || i2 < len(seq2); {
+		for i1, i2 := 0, 0; i1 < len(slice1) || i2 < len(slice2); {
 			var (
 				t time.Time
 				v *int
 			)
 			switch {
-			case i1 == len(seq1):
-				t = seq2[i2].Time
-				v2 := seq2[i2].Value
+			case i1 == len(slice1):
+				t = slice2[i2].Time
+				v2 := slice2[i2].Value
 				v = fn(t, nil, &v2)
 				i2++
-			case i2 == len(seq2):
-				t = seq2[i1].Time
-				v1 := seq1[i1].Value
+			case i2 == len(slice2):
+				t = slice2[i1].Time
+				v1 := slice1[i1].Value
 				v = fn(t, &v1, nil)
 				i1++
-			case seq1[i1].Time.Equal(seq2[i2].Time):
-				t = seq1[i1].Time
-				v1 := seq1[i1].Value
-				v2 := seq2[i2].Value
+			case slice1[i1].Time.Equal(slice2[i2].Time):
+				t = slice1[i1].Time
+				v1 := slice1[i1].Value
+				v2 := slice2[i2].Value
 				v = fn(t, &v1, &v2)
 				i1++
 				i2++
-			case seq1[i1].Time.Before(seq2[i2].Time):
-				t = seq1[i1].Time
-				v1 := seq1[i1].Value
+			case slice1[i1].Time.Before(slice2[i2].Time):
+				t = slice1[i1].Time
+				v1 := slice1[i1].Value
 				v = fn(t, &v1, nil)
 				i1++
-			case seq1[i1].Time.After(seq2[i2].Time):
-				t = seq1[i2].Time
-				v2 := seq2[i2].Value
+			case slice1[i1].Time.After(slice2[i2].Time):
+				t = slice1[i2].Time
+				v2 := slice2[i2].Value
 				v = fn(t, nil, &v2)
 				i2++
 			}
@@ -238,16 +252,78 @@ func (s IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) er
 				})
 			}
 		}
-		seq1 = got
+		slice1 = got
 	}
 
-	return got
+	s.slice = slice1
+	s.buildIndex()
+	return nil
 }
 
-func (s IntSeq) Aggregate(fn func(t time.Time, es ...Int) *Int, duration time.Duration) error {
-	panic("TODO")
+func (s *IntSeq) Aggregate(fn func(t time.Time, ints Ints) *int, duration time.Duration, begin, end *time.Time) error {
+	if fn == nil {
+		return errors.New("nil fn")
+	}
+
+	if duration <= 0 {
+		return errors.New("invalid duration")
+	}
+
+	var bg, ed time.Time
+	if len(s.slice) > 0 {
+		bg = s.slice[0].Time.Truncate(duration)
+		ed = s.slice[len(s.slice)-1].Time
+	}
+	if begin != nil {
+		bg = (*begin).Truncate(duration)
+	}
+	if end != nil {
+		ed = *end
+	}
+
+	slice := Ints{}
+	ints := Ints{}
+	i := 0
+	for t := bg; t.Before(ed); t = t.Add(duration) {
+		ints = ints[:0]
+		for i < s.slice.Len() &&
+			!s.slice[i].Time.After(t) &&
+			s.slice[i].Time.Before(t.Add(duration)) {
+			ints = append(ints, s.slice[i])
+			i++
+		}
+		v := fn(t, ints)
+		if v != nil {
+			slice = append(slice, Int{
+				Time:  t,
+				Value: *v,
+			})
+		}
+	}
+
+	s.slice = slice
+	s.buildIndex()
+	return nil
 }
 
-func (s IntSeq) Trim(trim func(i int, v Int) bool) error {
-	panic("TODO")
+func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
+	if fn == nil {
+		return errors.New("nil fn")
+	}
+
+	updated := false
+	slice := s.slice[:0]
+	for i, v := range s.slice {
+		if fn(i, v) {
+			updated = true
+		} else {
+			slice = append(slice, v)
+		}
+	}
+
+	if !updated {
+		s.slice = slice
+		s.buildIndex()
+	}
+	return nil
 }

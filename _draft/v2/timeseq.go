@@ -2,8 +2,56 @@ package timeseq
 
 import (
 	"encoding/binary"
+	"sort"
 	"time"
 )
+
+type Slice interface {
+	// return length
+	Len() int
+	// swap items
+	Swap(i, j int)
+	// return time of item i
+	Time(i int) time.Time
+	// return Slice[i:j]
+	Slice(i, j int) Slice
+}
+
+type sortableSlice struct {
+	Slice
+}
+
+func (s sortableSlice) Less(i, j int) bool {
+	return s.Time(i).Before(s.Time(j))
+}
+
+// Sort will sort slice by time
+func Sort(slice Slice) {
+	sort.Stable(sortableSlice{Slice: slice})
+}
+
+func IsSorted(slice Slice) bool {
+	return sort.IsSorted(sortableSlice{Slice: slice})
+}
+
+func Range(slice Slice, interval Interval) Slice {
+	i := 0
+	if interval.NotBefore != nil {
+		i = sort.Search(slice.Len(), func(i int) bool {
+			return !slice.Time(i).Before(*interval.NotBefore)
+		})
+	}
+	j := slice.Len()
+	if interval.NotAfter != nil {
+		j = sort.Search(slice.Len(), func(j int) bool {
+			return !slice.Time(j).Before(*interval.NotAfter)
+		})
+		if j < slice.Len() && slice.Time(j).Equal(*interval.NotAfter) {
+			j++
+		}
+	}
+	return slice.Slice(i, j)
+}
 
 type Interval struct {
 	NotBefore *time.Time
