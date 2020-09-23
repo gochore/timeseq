@@ -1,70 +1,55 @@
 package timeseq
 
 import (
+	"encoding/binary"
 	"sort"
 	"time"
 )
 
-// Sort will sort sequence by time
-func Sort(seq Sequence) {
-	if seq == nil {
-		return
-	}
-	sort.Sort(sortableSequence{seq})
+type Slice interface {
+	// return length
+	Len() int
+	// swap items
+	Swap(i, j int)
+	// return time of item i
+	Time(i int) time.Time
 }
 
-func TrimBefore(seq Sequence, before time.Time) Sequence {
-	i := sort.Search(seq.Len(), func(i int) bool {
-		return !seq.Time(i).Before(before)
-	})
-	return seq.Slice(i, seq.Len())
+type sortableSlice struct {
+	Slice
 }
 
-func TrimAfter(seq Sequence, after time.Time) Sequence {
-	j := sort.Search(seq.Len(), func(j int) bool {
-		return !seq.Time(j).Before(after)
-	})
-	if j < seq.Len() && seq.Time(j).Equal(after) {
-		j++
-	}
-	return seq.Slice(0, j)
+func (s sortableSlice) Less(i, j int) bool {
+	return s.Time(i).Before(s.Time(j))
 }
 
-// Get return the index of the first item with specified time
-func Get(seq Sequence, t time.Time) int {
-	i := sort.Search(seq.Len(), func(i int) bool {
-		return !seq.Time(i).Before(t)
-	})
-	if i >= seq.Len() {
-		i = -1
-	}
-	return i
+// Sort will sort seq by time
+func Sort(slice Slice) {
+	sort.Sort(sortableSlice{Slice: slice})
 }
 
-// First return the index of the first item
-func First(seq Sequence, afterOrEqual *time.Time) int {
-	i := 0
-	if afterOrEqual != nil {
-		i = sort.Search(seq.Len(), func(i int) bool {
-			return !seq.Time(i).Before(*afterOrEqual)
-		})
-		if i >= seq.Len() {
-			i = -1
-		}
-	}
-	return i
+type timeKey [16]byte
+
+func (k timeKey) Get() time.Time {
+	return time.Unix(int64(binary.BigEndian.Uint64(k[:8])), int64(binary.BigEndian.Uint64(k[8:])))
 }
 
-// Last return the index of the last item
-func Last(seq Sequence, beforeOrEqual *time.Time) int {
-	j := seq.Len() - 1
-	if beforeOrEqual != nil {
-		j = sort.Search(seq.Len(), func(i int) bool {
-			return !seq.Time(i).Before(*beforeOrEqual)
-		})
-		if j == seq.Len() || j < seq.Len() && !seq.Time(j).Equal(*beforeOrEqual) {
-			j--
-		}
+func (k timeKey) Put(t time.Time) {
+	binary.BigEndian.PutUint64(k[:8], uint64(t.Unix()))
+	binary.BigEndian.PutUint64(k[8:], uint64(t.UnixNano()))
+}
+
+type Interval struct {
+	NotBefore *time.Time
+	NotAfter  *time.Time
+}
+
+func (i Interval) Contain(t time.Time) bool {
+	if i.NotBefore == nil && t.Before(*i.NotBefore) {
+		return false
 	}
-	return j
+	if i.NotAfter == nil && t.After(*i.NotAfter) {
+		return false
+	}
+	return true
 }
