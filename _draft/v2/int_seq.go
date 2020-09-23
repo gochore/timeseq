@@ -58,6 +58,10 @@ func (s *IntSeq) Time(t time.Time) Ints {
 	panic("TODO")
 }
 
+func (s *IntSeq) Value(v int) Ints {
+	panic("TODO")
+}
+
 func (s *IntSeq) Visit(fn func(i int, v Int)) {
 	panic("TODO")
 }
@@ -70,23 +74,23 @@ func (s *IntSeq) Count() int {
 	panic("TODO")
 }
 
-func (s *IntSeq) Max() (int, Int) {
+func (s *IntSeq) Max() Int {
 	panic("TODO")
 }
 
-func (s *IntSeq) Min() (int, Int) {
+func (s *IntSeq) Min() Int {
 	panic("TODO")
 }
 
-func (s *IntSeq) First() (int, Int) {
+func (s *IntSeq) First() Int {
 	panic("TODO")
 }
 
-func (s *IntSeq) Last() (int, Int) {
+func (s *IntSeq) Last() Int {
 	panic("TODO")
 }
 
-func (s IntSeq) Percentile(pct float64) (int, Int) {
+func (s IntSeq) Percentile(pct float64) Int {
 	panic("TODO")
 }
 

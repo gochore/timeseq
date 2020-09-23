@@ -43,13 +43,3 @@ type Interval struct {
 	NotBefore *time.Time
 	NotAfter  *time.Time
 }
-
-func (i Interval) Contain(t time.Time) bool {
-	if i.NotBefore == nil && t.Before(*i.NotBefore) {
-		return false
-	}
-	if i.NotAfter == nil && t.After(*i.NotAfter) {
-		return false
-	}
-	return true
-}
