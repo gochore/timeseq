@@ -37,6 +37,11 @@ func main() {
 			Random: "rand.Float64()",
 		},
 		{
+			Name:   "String",
+			Type:   "string",
+			Random: "// TODO",
+		},
+		{
 			Name:   "Int",
 			Type:   "int",
 			Random: "rand.Int()",
