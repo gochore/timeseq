@@ -139,7 +139,7 @@ func (s *StringSeq) Max() String {
 		if !found {
 			max = v
 			found = true
-		} else if v.Value < max.Value {
+		} else if v.Value > max.Value {
 			max = v
 		}
 	}
@@ -226,7 +226,7 @@ func (s *StringSeq) Merge(fn func(t time.Time, v1, v2 *string) *string, slices .
 				v = fn(t, nil, &v2)
 				i2++
 			case i2 == len(slice2):
-				t = slice2[i1].Time
+				t = slice1[i1].Time
 				v1 := slice1[i1].Value
 				v = fn(t, &v1, nil)
 				i1++
@@ -243,7 +243,7 @@ func (s *StringSeq) Merge(fn func(t time.Time, v1, v2 *string) *string, slices .
 				v = fn(t, &v1, nil)
 				i1++
 			case slice1[i1].Time.After(slice2[i2].Time):
-				t = slice1[i2].Time
+				t = slice2[i2].Time
 				v2 := slice2[i2].Value
 				v = fn(t, nil, &v2)
 				i2++
@@ -315,7 +315,7 @@ func (s *StringSeq) Trim(fn func(i int, v String) bool) error {
 	}
 
 	updated := false
-	slice := s.slice[:0]
+	slice := make(Strings, 0)
 	for i, v := range s.slice {
 		if fn(i, v) {
 			updated = true
@@ -324,7 +324,7 @@ func (s *StringSeq) Trim(fn func(i int, v String) bool) error {
 		}
 	}
 
-	if !updated {
+	if updated {
 		s.slice = slice
 		s.buildIndex()
 	}
