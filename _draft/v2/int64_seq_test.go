@@ -227,6 +227,7 @@ func TestInt64Seq_Visit(t *testing.T) {
 
 func TestInt64Seq_Sum(t *testing.T) {
 	data := RandomInt64s(100)
+	Sort(data)
 	var sum int64
 	for _, v := range data {
 		sum += v.Value
@@ -710,9 +711,12 @@ func TestInt64Seq_Aggregate(t *testing.T) {
 			s := NewInt64Seq(data)
 			if err := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.begin, tt.args.end); (err != nil) != tt.wantErr {
 				t.Errorf("Aggregate() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			for i, v := range s.slice {
-				fmt.Println(i, v.Value, v.Time)
+			if !tt.wantErr {
+				for i, v := range s.slice {
+					fmt.Println(i, v.Value, v.Time)
+				}
 			}
 		})
 	}

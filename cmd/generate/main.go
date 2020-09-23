@@ -37,11 +37,6 @@ func main() {
 			Random: "rand.Float64()",
 		},
 		{
-			Name:   "String",
-			Type:   "string",
-			Random: "0",
-		},
-		{
 			Name:   "Int",
 			Type:   "int",
 			Random: "rand.Int()",
