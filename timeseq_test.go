@@ -25,6 +25,14 @@ func TestInterval_Contain(t *testing.T) {
 			want: true,
 		},
 		{
+			name:     "not contain",
+			interval: Interval{}.Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
+			args: args{
+				t: now.Add(2 * time.Hour),
+			},
+			want: false,
+		},
+		{
 			name:     "AfterOrEqual",
 			interval: Interval{}.AfterOrEqual(now),
 			args: args{
@@ -51,6 +59,62 @@ func TestInterval_Contain(t *testing.T) {
 		{
 			name:     "Before",
 			interval: Interval{}.Before(now),
+			args: args{
+				t: now,
+			},
+			want: false,
+		},
+		{
+			name:     "regular",
+			interval: Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
+			args: args{
+				t: now,
+			},
+			want: true,
+		},
+		{
+			name:     "not contain",
+			interval: Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
+			args: args{
+				t: now.Add(2 * time.Hour),
+			},
+			want: false,
+		},
+		{
+			name:     "AfterOrEqual",
+			interval: AfterOrEqual(now),
+			args: args{
+				t: now,
+			},
+			want: true,
+		},
+		{
+			name:     "After",
+			interval: After(now),
+			args: args{
+				t: now,
+			},
+			want: false,
+		},
+		{
+			name:     "BeforeOrEqual",
+			interval: BeforeOrEqual(now),
+			args: args{
+				t: now,
+			},
+			want: true,
+		},
+		{
+			name:     "Before",
+			interval: Before(now),
+			args: args{
+				t: now,
+			},
+			want: false,
+		},
+		{
+			name:     "chain",
+			interval: Before(now.Add(time.Hour)).After(now.Add(-time.Hour)).BeforeOrEqual(now).AfterOrEqual(now).Before(now).After(now),
 			args: args{
 				t: now,
 			},

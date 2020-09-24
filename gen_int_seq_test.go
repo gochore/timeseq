@@ -536,10 +536,7 @@ func TestIntSeq_Range(t *testing.T) {
 			name: "regular",
 			data: data,
 			args: args{
-				interval: Interval{
-					NotBefore: &data[10].Time,
-					NotAfter:  &data[89].Time,
-				},
+				interval: AfterOrEqual(data[10].Time).BeforeOrEqual(data[89].Time),
 			},
 			want: data[10:90],
 		},
@@ -547,9 +544,7 @@ func TestIntSeq_Range(t *testing.T) {
 			name: "nil NotBefore",
 			data: data,
 			args: args{
-				interval: Interval{
-					NotAfter: &data[89].Time,
-				},
+				interval: BeforeOrEqual(data[89].Time),
 			},
 			want: data[:90],
 		},
@@ -557,9 +552,7 @@ func TestIntSeq_Range(t *testing.T) {
 			name: "nil NotAfter",
 			data: data,
 			args: args{
-				interval: Interval{
-					NotBefore: &data[10].Time,
-				},
+				interval: AfterOrEqual(data[10].Time),
 			},
 			want: data[10:],
 		},
