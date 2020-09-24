@@ -94,6 +94,10 @@ func (s *IntSeq) Ints() Ints {
 	return slice
 }
 
+func (s *IntSeq) Len() int {
+	return len(s.slice)
+}
+
 func (s *IntSeq) Index(i int) Int {
 	if i < 0 || i >= len(s.slice) {
 		return Int{}
@@ -144,7 +148,7 @@ func (s *IntSeq) Sum() int {
 }
 
 func (s *IntSeq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *IntSeq) Max() Int {

@@ -93,6 +93,10 @@ func (s *{{.Name}}Seq) {{.Name}}s() {{.Name}}s {
 	return slice
 }
 
+func (s *{{.Name}}Seq) Len() int {
+	return len(s.slice)
+}
+
 func (s *{{.Name}}Seq) Index(i int) {{.Name}} {
 	if i < 0 || i >= len(s.slice) {
 		return {{.Name}}{}
@@ -143,7 +147,7 @@ func (s *{{.Name}}Seq) Sum() {{.Type}} {
 }
 
 func (s *{{.Name}}Seq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *{{.Name}}Seq) Max() {{.Name}} {

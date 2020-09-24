@@ -94,6 +94,10 @@ func (s *Int64Seq) Int64s() Int64s {
 	return slice
 }
 
+func (s *Int64Seq) Len() int {
+	return len(s.slice)
+}
+
 func (s *Int64Seq) Index(i int) Int64 {
 	if i < 0 || i >= len(s.slice) {
 		return Int64{}
@@ -144,7 +148,7 @@ func (s *Int64Seq) Sum() int64 {
 }
 
 func (s *Int64Seq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *Int64Seq) Max() Int64 {
