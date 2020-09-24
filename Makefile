@@ -1,4 +1,5 @@
 generage:
-	rm -f *_sequence.go
+	rm -f gen_*.go
 	go run cmd/generate/main.go
-
+test:
+	go test -v
