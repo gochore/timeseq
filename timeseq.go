@@ -70,24 +70,54 @@ func (i Interval) Contain(t time.Time) bool {
 
 func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	return Interval{
-		NotAfter: &t,
+		NotBefore: i.NotBefore,
+		NotAfter:  &t,
 	}
 }
 
 func (i Interval) AfterOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: &t,
+		NotAfter:  i.NotAfter,
 	}
 }
 
 func (i Interval) Before(t time.Time) Interval {
 	t = t.Add(-1)
 	return Interval{
-		NotAfter: &t,
+		NotBefore: i.NotBefore,
+		NotAfter:  &t,
 	}
 }
 
 func (i Interval) After(t time.Time) Interval {
+	t = t.Add(1)
+	return Interval{
+		NotBefore: &t,
+		NotAfter:  i.NotAfter,
+	}
+}
+
+func BeforeOrEqual(t time.Time) Interval {
+	return Interval{
+		NotAfter: &t,
+	}
+}
+
+func AfterOrEqual(t time.Time) Interval {
+	return Interval{
+		NotBefore: &t,
+	}
+}
+
+func Before(t time.Time) Interval {
+	t = t.Add(-1)
+	return Interval{
+		NotAfter: &t,
+	}
+}
+
+func After(t time.Time) Interval {
 	t = t.Add(1)
 	return Interval{
 		NotBefore: &t,
