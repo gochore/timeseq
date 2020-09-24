@@ -32,6 +32,11 @@ func main() {
 			Random: "rand.Int63()",
 		},
 		{
+			Name:   "Uint64",
+			Type:   "uint64",
+			Random: "rand.Uint64()",
+		},
+		{
 			Name:   "Float64",
 			Type:   "float64",
 			Random: "rand.Float64()",
