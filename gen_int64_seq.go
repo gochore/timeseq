@@ -47,12 +47,13 @@ type Int64Seq struct {
 func NewInt64Seq(slice Int64s) *Int64Seq {
 	temp := make(Int64s, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return WrapInt64Seq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func WrapInt64Seq(slice Int64s) *Int64Seq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return newInt64Seq(slice)
 }
 

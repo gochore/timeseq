@@ -47,12 +47,13 @@ type Float64Seq struct {
 func NewFloat64Seq(slice Float64s) *Float64Seq {
 	temp := make(Float64s, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return WrapFloat64Seq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func WrapFloat64Seq(slice Float64s) *Float64Seq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return newFloat64Seq(slice)
 }
 

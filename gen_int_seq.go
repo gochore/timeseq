@@ -47,12 +47,13 @@ type IntSeq struct {
 func NewIntSeq(slice Ints) *IntSeq {
 	temp := make(Ints, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return WrapIntSeq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func WrapIntSeq(slice Ints) *IntSeq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return newIntSeq(slice)
 }
 
