@@ -3,12 +3,17 @@ package timeseq
 import (
 	"errors"
 	"sort"
+	"sync"
 	"time"
 )
 
 type {{.Name}} struct {
 	Time  time.Time
 	Value {{.Type}}
+}
+
+func (v {{.Name}}) IsZero() bool {
+	return v.Value == 0 && v.Time.IsZero()
 }
 
 type {{.Name}}s []{{.Name}}
@@ -25,12 +30,14 @@ func (s {{.Name}}s) Time(i int) time.Time {
 	return s[i].Time
 }
 
-func (s {{.Name}}s) Slice(i, j int) Slice {
+func (s {{.Name}}s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
 type {{.Name}}Seq struct {
-	slice      {{.Name}}s
+	slice {{.Name}}s
+
+	indexOnce  sync.Once
 	timeIndex  map[timeKey][]int
 	valueIndex map[{{.Type}}][]int
 	valueSlice []int
@@ -52,26 +59,31 @@ func new{{.Name}}Seq(slice {{.Name}}s) *{{.Name}}Seq {
 	ret := &{{.Name}}Seq{
 		slice: slice,
 	}
-	ret.buildIndex()
 	return ret
 }
 
 func (s *{{.Name}}Seq) buildIndex() {
-	timeIndex := make(map[timeKey][]int, len(s.slice))
-	valueIndex := make(map[{{.Type}}][]int, len(s.slice))
-	valueSlice := s.valueSlice[:0]
-	for i, v := range s.slice {
-		k := newTimeKey(v.Time)
-		timeIndex[k] = append(timeIndex[k], i)
-		valueIndex[v.Value] = append(valueIndex[v.Value], i)
-		valueSlice = append(valueSlice, i)
-	}
-	sort.SliceStable(valueSlice, func(i, j int) bool {
-		return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+	s.indexOnce.Do(func() {
+		timeIndex := make(map[timeKey][]int, len(s.slice))
+		valueIndex := make(map[{{.Type}}][]int, len(s.slice))
+		valueSlice := s.valueSlice[:0]
+		for i, v := range s.slice {
+			k := newTimeKey(v.Time)
+			timeIndex[k] = append(timeIndex[k], i)
+			valueIndex[v.Value] = append(valueIndex[v.Value], i)
+			valueSlice = append(valueSlice, i)
+		}
+		sort.SliceStable(valueSlice, func(i, j int) bool {
+			return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+		})
+		s.timeIndex = timeIndex
+		s.valueIndex = valueIndex
+		s.valueSlice = valueSlice
 	})
-	s.timeIndex = timeIndex
-	s.valueIndex = valueIndex
-	s.valueSlice = valueSlice
+}
+
+func (s *{{.Name}}Seq) resetIndex() {
+	s.indexOnce = sync.Once{}
 }
 
 func (s *{{.Name}}Seq) {{.Name}}s() {{.Name}}s {
@@ -88,6 +100,7 @@ func (s *{{.Name}}Seq) Index(i int) {{.Name}} {
 }
 
 func (s *{{.Name}}Seq) Time(t time.Time) {{.Name}}s {
+	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
 		return nil
@@ -100,6 +113,7 @@ func (s *{{.Name}}Seq) Time(t time.Time) {{.Name}}s {
 }
 
 func (s *{{.Name}}Seq) Value(v {{.Type}}) {{.Name}}s {
+	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
 		return nil
@@ -174,6 +188,7 @@ func (s *{{.Name}}Seq) Last() {{.Name}} {
 }
 
 func (s *{{.Name}}Seq) Percentile(pct float64) {{.Name}} {
+	s.buildIndex()
 	if len(s.slice) == 0 {
 		return {{.Name}}{}
 	}
@@ -258,7 +273,7 @@ func (s *{{.Name}}Seq) Merge(fn func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}},
 	}
 
 	s.slice = slice1
-	s.buildIndex()
+	s.resetIndex()
 	return nil
 }
 
@@ -304,7 +319,7 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 	}
 
 	s.slice = got
-	s.buildIndex()
+	s.resetIndex()
 	return nil
 }
 
@@ -325,7 +340,7 @@ func (s *{{.Name}}Seq) Trim(fn func(i int, v {{.Name}}) bool) error {
 
 	if updated {
 		s.slice = slice
-		s.buildIndex()
+		s.resetIndex()
 	}
 	return nil
 }

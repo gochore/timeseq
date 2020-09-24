@@ -25,6 +25,43 @@ func RandomFloat64s(length int) Float64s {
 	return ret
 }
 
+func TestFloat64_IsZero(t *testing.T) {
+	type fields struct {
+		Time  time.Time
+		Value float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name:   "zero",
+			fields: fields{},
+			want:   true,
+		},
+		{
+			name: "not zero",
+			fields: fields{
+				Time:  time.Now(),
+				Value: 1,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := Float64{
+				Time:  tt.fields.Time,
+				Value: tt.fields.Value,
+			}
+			if got := v.IsZero(); got != tt.want {
+				t.Errorf("IsZero() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestFloat64Seq_Float64s(t *testing.T) {
 	data := RandomFloat64s(100)
 	Sort(data)
@@ -621,6 +658,20 @@ func TestFloat64Seq_Merge(t *testing.T) {
 				slices: []Float64s{
 					append(Float64s{data[9]}, data[3:9]...),
 				},
+			},
+			want: data,
+		},
+		{
+			name: "empty slices",
+			data: data[0:7],
+			args: args{
+				fn: func(t time.Time, v1, v2 *float64) *float64 {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slices: []Float64s{},
 			},
 			want: data,
 		},

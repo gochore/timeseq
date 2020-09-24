@@ -4,12 +4,17 @@ package timeseq
 import (
 	"errors"
 	"sort"
+	"sync"
 	"time"
 )
 
 type Float64 struct {
 	Time  time.Time
 	Value float64
+}
+
+func (v Float64) IsZero() bool {
+	return v.Value == 0 && v.Time.IsZero()
 }
 
 type Float64s []Float64
@@ -26,12 +31,14 @@ func (s Float64s) Time(i int) time.Time {
 	return s[i].Time
 }
 
-func (s Float64s) Slice(i, j int) Slice {
+func (s Float64s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
 type Float64Seq struct {
-	slice      Float64s
+	slice Float64s
+
+	indexOnce  sync.Once
 	timeIndex  map[timeKey][]int
 	valueIndex map[float64][]int
 	valueSlice []int
@@ -53,26 +60,31 @@ func newFloat64Seq(slice Float64s) *Float64Seq {
 	ret := &Float64Seq{
 		slice: slice,
 	}
-	ret.buildIndex()
 	return ret
 }
 
 func (s *Float64Seq) buildIndex() {
-	timeIndex := make(map[timeKey][]int, len(s.slice))
-	valueIndex := make(map[float64][]int, len(s.slice))
-	valueSlice := s.valueSlice[:0]
-	for i, v := range s.slice {
-		k := newTimeKey(v.Time)
-		timeIndex[k] = append(timeIndex[k], i)
-		valueIndex[v.Value] = append(valueIndex[v.Value], i)
-		valueSlice = append(valueSlice, i)
-	}
-	sort.SliceStable(valueSlice, func(i, j int) bool {
-		return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+	s.indexOnce.Do(func() {
+		timeIndex := make(map[timeKey][]int, len(s.slice))
+		valueIndex := make(map[float64][]int, len(s.slice))
+		valueSlice := s.valueSlice[:0]
+		for i, v := range s.slice {
+			k := newTimeKey(v.Time)
+			timeIndex[k] = append(timeIndex[k], i)
+			valueIndex[v.Value] = append(valueIndex[v.Value], i)
+			valueSlice = append(valueSlice, i)
+		}
+		sort.SliceStable(valueSlice, func(i, j int) bool {
+			return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+		})
+		s.timeIndex = timeIndex
+		s.valueIndex = valueIndex
+		s.valueSlice = valueSlice
 	})
-	s.timeIndex = timeIndex
-	s.valueIndex = valueIndex
-	s.valueSlice = valueSlice
+}
+
+func (s *Float64Seq) resetIndex() {
+	s.indexOnce = sync.Once{}
 }
 
 func (s *Float64Seq) Float64s() Float64s {
@@ -89,6 +101,7 @@ func (s *Float64Seq) Index(i int) Float64 {
 }
 
 func (s *Float64Seq) Time(t time.Time) Float64s {
+	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
 		return nil
@@ -101,6 +114,7 @@ func (s *Float64Seq) Time(t time.Time) Float64s {
 }
 
 func (s *Float64Seq) Value(v float64) Float64s {
+	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
 		return nil
@@ -175,6 +189,7 @@ func (s *Float64Seq) Last() Float64 {
 }
 
 func (s *Float64Seq) Percentile(pct float64) Float64 {
+	s.buildIndex()
 	if len(s.slice) == 0 {
 		return Float64{}
 	}
@@ -259,7 +274,7 @@ func (s *Float64Seq) Merge(fn func(t time.Time, v1, v2 *float64) *float64, slice
 	}
 
 	s.slice = slice1
-	s.buildIndex()
+	s.resetIndex()
 	return nil
 }
 
@@ -305,7 +320,7 @@ func (s *Float64Seq) Aggregate(fn func(t time.Time, slice Float64s) *float64, du
 	}
 
 	s.slice = got
-	s.buildIndex()
+	s.resetIndex()
 	return nil
 }
 
@@ -326,7 +341,7 @@ func (s *Float64Seq) Trim(fn func(i int, v Float64) bool) error {
 
 	if updated {
 		s.slice = slice
-		s.buildIndex()
+		s.resetIndex()
 	}
 	return nil
 }

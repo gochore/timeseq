@@ -25,6 +25,43 @@ func RandomInt64s(length int) Int64s {
 	return ret
 }
 
+func TestInt64_IsZero(t *testing.T) {
+	type fields struct {
+		Time  time.Time
+		Value int64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name:   "zero",
+			fields: fields{},
+			want:   true,
+		},
+		{
+			name: "not zero",
+			fields: fields{
+				Time:  time.Now(),
+				Value: 1,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := Int64{
+				Time:  tt.fields.Time,
+				Value: tt.fields.Value,
+			}
+			if got := v.IsZero(); got != tt.want {
+				t.Errorf("IsZero() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestInt64Seq_Int64s(t *testing.T) {
 	data := RandomInt64s(100)
 	Sort(data)
@@ -621,6 +658,20 @@ func TestInt64Seq_Merge(t *testing.T) {
 				slices: []Int64s{
 					append(Int64s{data[9]}, data[3:9]...),
 				},
+			},
+			want: data,
+		},
+		{
+			name: "empty slices",
+			data: data[0:7],
+			args: args{
+				fn: func(t time.Time, v1, v2 *int64) *int64 {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slices: []Int64s{},
 			},
 			want: data,
 		},

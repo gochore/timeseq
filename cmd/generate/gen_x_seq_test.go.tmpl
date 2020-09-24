@@ -24,6 +24,43 @@ func Random{{.Name}}s(length int) {{.Name}}s {
 	return ret
 }
 
+func Test{{.Name}}_IsZero(t *testing.T) {
+	type fields struct {
+		Time  time.Time
+		Value {{.Type}}
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name:   "zero",
+			fields: fields{},
+			want:   true,
+		},
+		{
+			name: "not zero",
+			fields: fields{
+				Time:  time.Now(),
+				Value: 1,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := {{.Name}}{
+				Time:  tt.fields.Time,
+				Value: tt.fields.Value,
+			}
+			if got := v.IsZero(); got != tt.want {
+				t.Errorf("IsZero() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test{{.Name}}Seq_{{.Name}}s(t *testing.T) {
 	data := Random{{.Name}}s(100)
 	Sort(data)
@@ -620,6 +657,20 @@ func Test{{.Name}}Seq_Merge(t *testing.T) {
 				slices: []{{.Name}}s{
 					append({{.Name}}s{data[9]}, data[3:9]...),
 				},
+			},
+			want: data,
+		},
+		{
+			name: "empty slices",
+			data: data[0:7],
+			args: args{
+				fn: func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}} {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slices: []{{.Name}}s{},
 			},
 			want: data,
 		},

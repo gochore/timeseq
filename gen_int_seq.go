@@ -4,12 +4,17 @@ package timeseq
 import (
 	"errors"
 	"sort"
+	"sync"
 	"time"
 )
 
 type Int struct {
 	Time  time.Time
 	Value int
+}
+
+func (v Int) IsZero() bool {
+	return v.Value == 0 && v.Time.IsZero()
 }
 
 type Ints []Int
@@ -26,12 +31,14 @@ func (s Ints) Time(i int) time.Time {
 	return s[i].Time
 }
 
-func (s Ints) Slice(i, j int) Slice {
+func (s Ints) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
 type IntSeq struct {
-	slice      Ints
+	slice Ints
+
+	indexOnce  sync.Once
 	timeIndex  map[timeKey][]int
 	valueIndex map[int][]int
 	valueSlice []int
@@ -53,26 +60,31 @@ func newIntSeq(slice Ints) *IntSeq {
 	ret := &IntSeq{
 		slice: slice,
 	}
-	ret.buildIndex()
 	return ret
 }
 
 func (s *IntSeq) buildIndex() {
-	timeIndex := make(map[timeKey][]int, len(s.slice))
-	valueIndex := make(map[int][]int, len(s.slice))
-	valueSlice := s.valueSlice[:0]
-	for i, v := range s.slice {
-		k := newTimeKey(v.Time)
-		timeIndex[k] = append(timeIndex[k], i)
-		valueIndex[v.Value] = append(valueIndex[v.Value], i)
-		valueSlice = append(valueSlice, i)
-	}
-	sort.SliceStable(valueSlice, func(i, j int) bool {
-		return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+	s.indexOnce.Do(func() {
+		timeIndex := make(map[timeKey][]int, len(s.slice))
+		valueIndex := make(map[int][]int, len(s.slice))
+		valueSlice := s.valueSlice[:0]
+		for i, v := range s.slice {
+			k := newTimeKey(v.Time)
+			timeIndex[k] = append(timeIndex[k], i)
+			valueIndex[v.Value] = append(valueIndex[v.Value], i)
+			valueSlice = append(valueSlice, i)
+		}
+		sort.SliceStable(valueSlice, func(i, j int) bool {
+			return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+		})
+		s.timeIndex = timeIndex
+		s.valueIndex = valueIndex
+		s.valueSlice = valueSlice
 	})
-	s.timeIndex = timeIndex
-	s.valueIndex = valueIndex
-	s.valueSlice = valueSlice
+}
+
+func (s *IntSeq) resetIndex() {
+	s.indexOnce = sync.Once{}
 }
 
 func (s *IntSeq) Ints() Ints {
@@ -89,6 +101,7 @@ func (s *IntSeq) Index(i int) Int {
 }
 
 func (s *IntSeq) Time(t time.Time) Ints {
+	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
 		return nil
@@ -101,6 +114,7 @@ func (s *IntSeq) Time(t time.Time) Ints {
 }
 
 func (s *IntSeq) Value(v int) Ints {
+	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
 		return nil
@@ -175,6 +189,7 @@ func (s *IntSeq) Last() Int {
 }
 
 func (s *IntSeq) Percentile(pct float64) Int {
+	s.buildIndex()
 	if len(s.slice) == 0 {
 		return Int{}
 	}
@@ -259,7 +274,7 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 	}
 
 	s.slice = slice1
-	s.buildIndex()
+	s.resetIndex()
 	return nil
 }
 
@@ -305,7 +320,7 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 	}
 
 	s.slice = got
-	s.buildIndex()
+	s.resetIndex()
 	return nil
 }
 
@@ -326,7 +341,7 @@ func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
 
 	if updated {
 		s.slice = slice
-		s.buildIndex()
+		s.resetIndex()
 	}
 	return nil
 }

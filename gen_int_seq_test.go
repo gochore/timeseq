@@ -25,6 +25,43 @@ func RandomInts(length int) Ints {
 	return ret
 }
 
+func TestInt_IsZero(t *testing.T) {
+	type fields struct {
+		Time  time.Time
+		Value int
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name:   "zero",
+			fields: fields{},
+			want:   true,
+		},
+		{
+			name: "not zero",
+			fields: fields{
+				Time:  time.Now(),
+				Value: 1,
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v := Int{
+				Time:  tt.fields.Time,
+				Value: tt.fields.Value,
+			}
+			if got := v.IsZero(); got != tt.want {
+				t.Errorf("IsZero() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestIntSeq_Ints(t *testing.T) {
 	data := RandomInts(100)
 	Sort(data)
@@ -621,6 +658,20 @@ func TestIntSeq_Merge(t *testing.T) {
 				slices: []Ints{
 					append(Ints{data[9]}, data[3:9]...),
 				},
+			},
+			want: data,
+		},
+		{
+			name: "empty slices",
+			data: data[0:7],
+			args: args{
+				fn: func(t time.Time, v1, v2 *int) *int {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slices: []Ints{},
 			},
 			want: data,
 		},
