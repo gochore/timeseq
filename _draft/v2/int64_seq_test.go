@@ -672,7 +672,7 @@ func TestInt64Seq_Merge(t *testing.T) {
 				},
 				slices: []Int64s{},
 			},
-			want: data,
+			want: data[0:7],
 		},
 	}
 	for _, tt := range tests {

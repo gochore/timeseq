@@ -673,7 +673,7 @@ func TestIntSeq_Merge(t *testing.T) {
 				},
 				slices: []Ints{},
 			},
-			want: data,
+			want: data[0:7],
 		},
 	}
 	for _, tt := range tests {
