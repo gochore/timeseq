@@ -47,12 +47,13 @@ type Float64Seq struct {
 func NewFloat64Seq(slice Float64s) *Float64Seq {
 	temp := make(Float64s, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return WrapFloat64Seq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func WrapFloat64Seq(slice Float64s) *Float64Seq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return newFloat64Seq(slice)
 }
 
@@ -91,6 +92,10 @@ func (s *Float64Seq) Float64s() Float64s {
 	slice := make(Float64s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
+}
+
+func (s *Float64Seq) Len() int {
+	return len(s.slice)
 }
 
 func (s *Float64Seq) Index(i int) Float64 {
@@ -143,7 +148,7 @@ func (s *Float64Seq) Sum() float64 {
 }
 
 func (s *Float64Seq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *Float64Seq) Max() Float64 {

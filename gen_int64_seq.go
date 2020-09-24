@@ -47,12 +47,13 @@ type Int64Seq struct {
 func NewInt64Seq(slice Int64s) *Int64Seq {
 	temp := make(Int64s, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return WrapInt64Seq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func WrapInt64Seq(slice Int64s) *Int64Seq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return newInt64Seq(slice)
 }
 
@@ -91,6 +92,10 @@ func (s *Int64Seq) Int64s() Int64s {
 	slice := make(Int64s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
+}
+
+func (s *Int64Seq) Len() int {
+	return len(s.slice)
 }
 
 func (s *Int64Seq) Index(i int) Int64 {
@@ -143,7 +148,7 @@ func (s *Int64Seq) Sum() int64 {
 }
 
 func (s *Int64Seq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *Int64Seq) Max() Int64 {

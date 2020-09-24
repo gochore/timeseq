@@ -47,12 +47,13 @@ type IntSeq struct {
 func NewIntSeq(slice Ints) *IntSeq {
 	temp := make(Ints, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return WrapIntSeq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func WrapIntSeq(slice Ints) *IntSeq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return newIntSeq(slice)
 }
 
@@ -91,6 +92,10 @@ func (s *IntSeq) Ints() Ints {
 	slice := make(Ints, len(s.slice))
 	copy(slice, s.slice)
 	return slice
+}
+
+func (s *IntSeq) Len() int {
+	return len(s.slice)
 }
 
 func (s *IntSeq) Index(i int) Int {
@@ -143,7 +148,7 @@ func (s *IntSeq) Sum() int {
 }
 
 func (s *IntSeq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *IntSeq) Max() Int {

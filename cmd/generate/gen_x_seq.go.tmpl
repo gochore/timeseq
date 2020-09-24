@@ -46,12 +46,13 @@ type {{.Name}}Seq struct {
 func New{{.Name}}Seq(slice {{.Name}}s) *{{.Name}}Seq {
 	temp := make({{.Name}}s, len(slice))
 	copy(temp, slice)
-	slice = temp
+	return Wrap{{.Name}}Seq(temp)
+}
 
-	Sort(slice)
-	sort.SliceStable(slice, func(i, j int) bool {
-		return slice[i].Time.Before(slice[j].Time)
-	})
+func Wrap{{.Name}}Seq(slice {{.Name}}s) *{{.Name}}Seq {
+	if !IsSorted(slice) {
+		Sort(slice)
+	}
 	return new{{.Name}}Seq(slice)
 }
 
@@ -90,6 +91,10 @@ func (s *{{.Name}}Seq) {{.Name}}s() {{.Name}}s {
 	slice := make({{.Name}}s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
+}
+
+func (s *{{.Name}}Seq) Len() int {
+	return len(s.slice)
 }
 
 func (s *{{.Name}}Seq) Index(i int) {{.Name}} {
@@ -142,7 +147,7 @@ func (s *{{.Name}}Seq) Sum() {{.Type}} {
 }
 
 func (s *{{.Name}}Seq) Count() int {
-	return len(s.slice)
+	return s.Len()
 }
 
 func (s *{{.Name}}Seq) Max() {{.Name}} {
