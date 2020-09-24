@@ -11,6 +11,10 @@ type Int64 struct {
 	Value int64
 }
 
+func (v Int64) IsZero() bool {
+	return v.Value == 0 && v.Time.IsZero()
+}
+
 type Int64s []Int64
 
 func (s Int64s) Len() int {
