@@ -18,11 +18,43 @@ func TestInterval_Contain(t *testing.T) {
 	}{
 		{
 			name:     "regular",
-			interval: Before(now.Add(time.Hour)),
+			interval: Interval{}.Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
 			args: args{
-				t: time.Now(),
+				t: now,
 			},
 			want: true,
+		},
+		{
+			name:     "AfterOrEqual",
+			interval: Interval{}.AfterOrEqual(now),
+			args: args{
+				t: now,
+			},
+			want: true,
+		},
+		{
+			name:     "After",
+			interval: Interval{}.After(now),
+			args: args{
+				t: now,
+			},
+			want: false,
+		},
+		{
+			name:     "BeforeOrEqual",
+			interval: Interval{}.BeforeOrEqual(now),
+			args: args{
+				t: now,
+			},
+			want: true,
+		},
+		{
+			name:     "Before",
+			interval: Interval{}.Before(now),
+			args: args{
+				t: now,
+			},
+			want: false,
 		},
 	}
 	for _, tt := range tests {

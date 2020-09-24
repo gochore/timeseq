@@ -68,23 +68,6 @@ func (i Interval) Contain(t time.Time) bool {
 	return true
 }
 
-func (i Interval) Merge(i2 Interval) Interval {
-	ret := i
-	if i2.NotBefore != nil {
-		t := *i2.NotBefore
-		if ret.NotBefore == nil || ret.NotBefore.Before(t) {
-			ret.NotBefore = &t
-		}
-	}
-	if i2.NotAfter != nil {
-		t := *i2.NotAfter
-		if ret.NotAfter == nil || ret.NotAfter.After(t) {
-			ret.NotAfter = &t
-		}
-	}
-	return ret
-}
-
 func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	return Interval{
 		NotAfter: &t,
@@ -107,7 +90,7 @@ func (i Interval) Before(t time.Time) Interval {
 func (i Interval) After(t time.Time) Interval {
 	t = t.Add(1)
 	return Interval{
-		NotAfter: &t,
+		NotBefore: &t,
 	}
 }
 
