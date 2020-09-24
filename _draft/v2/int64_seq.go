@@ -25,7 +25,7 @@ func (s Int64s) Time(i int) time.Time {
 	return s[i].Time
 }
 
-func (s Int64s) Slice(i, j int) Slice {
+func (s Int64s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 

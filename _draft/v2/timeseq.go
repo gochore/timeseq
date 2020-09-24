@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Slice interface {
+type Interface interface {
 	// return length
 	Len() int
 	// swap items
@@ -14,27 +14,27 @@ type Slice interface {
 	// return time of item i
 	Time(i int) time.Time
 	// return Slice[i:j]
-	Slice(i, j int) Slice
+	Slice(i, j int) Interface
 }
 
-type sortableSlice struct {
-	Slice
+type sortable struct {
+	Interface
 }
 
-func (s sortableSlice) Less(i, j int) bool {
+func (s sortable) Less(i, j int) bool {
 	return s.Time(i).Before(s.Time(j))
 }
 
 // Sort will sort slice by time
-func Sort(slice Slice) {
-	sort.Stable(sortableSlice{Slice: slice})
+func Sort(slice Interface) {
+	sort.Stable(sortable{Interface: slice})
 }
 
-func IsSorted(slice Slice) bool {
-	return sort.IsSorted(sortableSlice{Slice: slice})
+func IsSorted(slice Interface) bool {
+	return sort.IsSorted(sortable{Interface: slice})
 }
 
-func Range(slice Slice, interval Interval) Slice {
+func Range(slice Interface, interval Interval) Interface {
 	i := 0
 	if interval.NotBefore != nil {
 		i = sort.Search(slice.Len(), func(i int) bool {

@@ -124,7 +124,7 @@ func TestIntSequence_Slice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.s.Slice(tt.args.i, tt.args.j); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("IntSequence.Slice() = %v, want %v", got, tt.want)
+				t.Errorf("IntSequence.Interface() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -146,7 +146,7 @@ func TestIntSequence_Sort(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.s.Sort()
 			if !sort.IsSorted(sortableSequence{tt.s}) {
-				t.Error("IntSequence.Slice() failed")
+				t.Error("IntSequence.Interface() failed")
 			}
 		})
 	}
