@@ -694,8 +694,7 @@ func TestInt64Seq_Aggregate(t *testing.T) {
 	type args struct {
 		fn       func(t time.Time, slice Int64s) *int64
 		duration time.Duration
-		begin    *time.Time
-		end      *time.Time
+		interval Interval
 	}
 	tests := []struct {
 		name    string
@@ -716,8 +715,7 @@ func TestInt64Seq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: time.Hour,
-				begin:    &begin,
-				end:      &end,
+				interval: BeginAt(begin).EndAt(end),
 			},
 			wantErr: false,
 		},
@@ -726,8 +724,7 @@ func TestInt64Seq_Aggregate(t *testing.T) {
 			args: args{
 				fn:       nil,
 				duration: time.Hour,
-				begin:    &begin,
-				end:      &end,
+				interval: BeginAt(begin).EndAt(end),
 			},
 			wantErr: true,
 		},
@@ -745,16 +742,15 @@ func TestInt64Seq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: 0,
-				begin:    &begin,
-				end:      &end,
+				interval: BeginAt(begin).EndAt(end),
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(data)
-			if err := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.begin, tt.args.end); (err != nil) != tt.wantErr {
+			if err := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval); (err != nil) != tt.wantErr {
 				t.Errorf("Aggregate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

@@ -68,6 +68,14 @@ func (i Interval) Contain(t time.Time) bool {
 	return true
 }
 
+func (i Interval) BeginAt(t time.Time) Interval {
+	return i.AfterOrEqual(t)
+}
+
+func (i Interval) EndAt(t time.Time) Interval {
+	return i.BeforeOrEqual(t)
+}
+
 func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: i.NotBefore,
@@ -96,6 +104,14 @@ func (i Interval) After(t time.Time) Interval {
 		NotBefore: &t,
 		NotAfter:  i.NotAfter,
 	}
+}
+
+func BeginAt(t time.Time) Interval {
+	return AfterOrEqual(t)
+}
+
+func EndAt(t time.Time) Interval {
+	return BeforeOrEqual(t)
 }
 
 func BeforeOrEqual(t time.Time) Interval {
