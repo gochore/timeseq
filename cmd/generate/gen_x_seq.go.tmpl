@@ -282,7 +282,7 @@ func (s *{{.Name}}Seq) Merge(fn func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}},
 	return nil
 }
 
-func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type}}, duration time.Duration, begin, end *time.Time) error {
+func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type}}, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}

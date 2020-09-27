@@ -8,9 +8,9 @@
 
 Time sequence.
 
-This is v2, work in process.
+This is v2, work in process before v2.1.0.
 
-Switch to [v1](https://github.com/gochore/timeseq/tree/v1).
+Switch to stable [v1](https://github.com/gochore/timeseq/tree/v1).
 
 ## Install
 
