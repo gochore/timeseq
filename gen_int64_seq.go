@@ -284,7 +284,7 @@ func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, slices ...I
 	return nil
 }
 
-func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration time.Duration, begin, end *time.Time) error {
+func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
