@@ -18,6 +18,10 @@ func (v Float64) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+func (v Float64) Equal(n Float64) bool {
+	return v.Value == n.Value && v.Time.Equal(n.Time)
+}
+
 type Float64s []Float64
 
 func (s Float64s) Len() int {
