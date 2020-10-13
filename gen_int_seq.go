@@ -18,6 +18,10 @@ func (v Int) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+func (v Int) Equal(n Int) bool {
+	return v.Value == n.Value && v.Time.Equal(n.Time)
+}
+
 type Ints []Int
 
 func (s Ints) Len() int {

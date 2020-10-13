@@ -18,6 +18,10 @@ func (v Uint64) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+func (v Uint64) Equal(n Uint64) bool {
+	return v.Value == n.Value && v.Time.Equal(n.Time)
+}
+
 type Uint64s []Uint64
 
 func (s Uint64s) Len() int {

@@ -123,6 +123,59 @@ func TestUint64Seq_Index(t *testing.T) {
 	}
 }
 
+func TestUint64Seq_Time(t *testing.T) {
+	now := time.Now()
+	yesterday := now.AddDate(0, 0, -1)
+	lastMonth := now.AddDate(0, -1, 0)
+	lastYear := now.AddDate(-1, 0, 0)
+
+	data := RandomUint64s(100)
+	data[0].Time = lastMonth
+	data[1].Time = lastMonth
+	data[2].Time = lastMonth
+	data[3].Time = yesterday
+	Sort(data)
+
+	type args struct {
+		t time.Time
+	}
+	tests := []struct {
+		name string
+		args args
+		want Uint64
+	}{
+		{
+			name: "regular",
+			args: args{
+				t: yesterday,
+			},
+			want: data[3],
+		},
+		{
+			name: "multiple",
+			args: args{
+				t: lastMonth,
+			},
+			want: data[0],
+		},
+		{
+			name: "none",
+			args: args{
+				t: lastYear,
+			},
+			want: Uint64{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewUint64Seq(data)
+			if got := s.Time(tt.args.t); !got.Equal(tt.want) {
+				t.Errorf("Time() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestUint64Seq_MTime(t *testing.T) {
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
@@ -171,6 +224,59 @@ func TestUint64Seq_MTime(t *testing.T) {
 			s := NewUint64Seq(data)
 			if got := s.MTime(tt.args.t); len(got) != tt.length {
 				t.Errorf("MTime() = %v, want %v", got, tt.length)
+			}
+		})
+	}
+}
+
+func TestUint64Seq_Value(t *testing.T) {
+	data := RandomUint64s(100)
+	Sort(data)
+
+	value1 := data[0].Value
+	value2 := data[1].Value
+	value3 := data[2].Value
+
+	data[0].Value = value1
+	data[1].Value = value2
+	data[2].Value = value2
+	data[3].Value = value2
+
+	type args struct {
+		v int64
+	}
+	tests := []struct {
+		name string
+		args args
+		want Uint64
+	}{
+		{
+			name: "regular",
+			args: args{
+				v: value1,
+			},
+			want: data[0],
+		},
+		{
+			name: "multiple",
+			args: args{
+				v: value2,
+			},
+			want: data[1],
+		},
+		{
+			name: "none",
+			args: args{
+				v: value3,
+			},
+			want: Uint64{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewUint64Seq(data)
+			if got := s.Value(tt.args.v); !got.Equal(tt.want) {
+				t.Errorf("Value() = %v, want %v", got, tt.want)
 			}
 		})
 	}
