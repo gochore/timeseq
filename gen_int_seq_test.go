@@ -243,7 +243,7 @@ func TestIntSeq_Value(t *testing.T) {
 	data[3].Value = value2
 
 	type args struct {
-		v int64
+		v int
 	}
 	tests := []struct {
 		name string
