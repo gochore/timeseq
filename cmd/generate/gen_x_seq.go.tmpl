@@ -104,7 +104,15 @@ func (s *{{.Name}}Seq) Index(i int) {{.Name}} {
 	return s.slice[i]
 }
 
-func (s *{{.Name}}Seq) Time(t time.Time) {{.Name}}s {
+func (s *{{.Name}}64Seq) Time(t time.Time) {{.Name}} {
+	got := s.MTime(t)
+	if len(got) == 0 {
+		return Int64{}
+	}
+	return got[0]
+}
+
+func (s *{{.Name}}Seq) MTime(t time.Time) {{.Name}}s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
@@ -117,7 +125,15 @@ func (s *{{.Name}}Seq) Time(t time.Time) {{.Name}}s {
 	return ret
 }
 
-func (s *{{.Name}}Seq) Value(v {{.Type}}) {{.Name}}s {
+func (s *{{.Name}}Seq) Value(v {{.Type}}) {{.Name}} {
+	got := s.MValue(v)
+	if len(got) == 0 {
+		return Int64{}
+	}
+	return got[0]
+}
+
+func (s *{{.Name}}Seq) MValue(v {{.Type}}) {{.Name}}s {
 	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
