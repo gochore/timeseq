@@ -170,7 +170,7 @@ func TestInt64Seq_MTime(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(data)
 			if got := s.MTime(tt.args.t); len(got) != tt.length {
-				t.Errorf("Time() = %v, want %v", got, tt.length)
+				t.Errorf("MTime() = %v, want %v", got, tt.length)
 			}
 		})
 	}
@@ -223,7 +223,7 @@ func TestInt64Seq_MValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(data)
 			if got := s.MValue(tt.args.v); len(got) != tt.length {
-				t.Errorf("Value() = %v, want %v", got, tt.length)
+				t.Errorf("MValue() = %v, want %v", got, tt.length)
 			}
 		})
 	}

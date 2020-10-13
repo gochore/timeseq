@@ -104,10 +104,10 @@ func (s *{{.Name}}Seq) Index(i int) {{.Name}} {
 	return s.slice[i]
 }
 
-func (s *{{.Name}}64Seq) Time(t time.Time) {{.Name}} {
+func (s *{{.Name}}Seq) Time(t time.Time) {{.Name}} {
 	got := s.MTime(t)
 	if len(got) == 0 {
-		return Int64{}
+		return {{.Name}}{}
 	}
 	return got[0]
 }
@@ -128,7 +128,7 @@ func (s *{{.Name}}Seq) MTime(t time.Time) {{.Name}}s {
 func (s *{{.Name}}Seq) Value(v {{.Type}}) {{.Name}} {
 	got := s.MValue(v)
 	if len(got) == 0 {
-		return Int64{}
+		return {{.Name}}{}
 	}
 	return got[0]
 }
