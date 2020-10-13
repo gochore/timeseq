@@ -106,7 +106,15 @@ func (s *Uint64Seq) Index(i int) Uint64 {
 	return s.slice[i]
 }
 
-func (s *Uint64Seq) Time(t time.Time) Uint64s {
+func (s *Uint64Seq) Time(t time.Time) Uint64 {
+	got := s.MTime(t)
+	if len(got) == 0 {
+		return Uint64{}
+	}
+	return got[0]
+}
+
+func (s *Uint64Seq) MTime(t time.Time) Uint64s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
@@ -119,7 +127,15 @@ func (s *Uint64Seq) Time(t time.Time) Uint64s {
 	return ret
 }
 
-func (s *Uint64Seq) Value(v uint64) Uint64s {
+func (s *Uint64Seq) Value(v uint64) Uint64 {
+	got := s.MValue(v)
+	if len(got) == 0 {
+		return Uint64{}
+	}
+	return got[0]
+}
+
+func (s *Uint64Seq) MValue(v uint64) Uint64s {
 	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {

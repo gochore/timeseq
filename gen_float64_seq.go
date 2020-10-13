@@ -106,7 +106,15 @@ func (s *Float64Seq) Index(i int) Float64 {
 	return s.slice[i]
 }
 
-func (s *Float64Seq) Time(t time.Time) Float64s {
+func (s *Float64Seq) Time(t time.Time) Float64 {
+	got := s.MTime(t)
+	if len(got) == 0 {
+		return Float64{}
+	}
+	return got[0]
+}
+
+func (s *Float64Seq) MTime(t time.Time) Float64s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
@@ -119,7 +127,15 @@ func (s *Float64Seq) Time(t time.Time) Float64s {
 	return ret
 }
 
-func (s *Float64Seq) Value(v float64) Float64s {
+func (s *Float64Seq) Value(v float64) Float64 {
+	got := s.MValue(v)
+	if len(got) == 0 {
+		return Float64{}
+	}
+	return got[0]
+}
+
+func (s *Float64Seq) MValue(v float64) Float64s {
 	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {

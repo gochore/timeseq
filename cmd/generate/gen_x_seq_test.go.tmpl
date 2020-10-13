@@ -121,7 +121,7 @@ func Test{{.Name}}Seq_Index(t *testing.T) {
 	}
 }
 
-func Test{{.Name}}Seq_Time(t *testing.T) {
+func Test{{.Name}}Seq_MTime(t *testing.T) {
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
 	lastMonth := now.AddDate(0, -1, 0)
@@ -167,14 +167,14 @@ func Test{{.Name}}Seq_Time(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := New{{.Name}}Seq(data)
-			if got := s.Time(tt.args.t); len(got) != tt.length {
-				t.Errorf("Time() = %v, want %v", got, tt.length)
+			if got := s.MTime(tt.args.t); len(got) != tt.length {
+				t.Errorf("MTime() = %v, want %v", got, tt.length)
 			}
 		})
 	}
 }
 
-func Test{{.Name}}Seq_Value(t *testing.T) {
+func Test{{.Name}}Seq_MValue(t *testing.T) {
 	data := Random{{.Name}}s(100)
 	Sort(data)
 
@@ -220,8 +220,8 @@ func Test{{.Name}}Seq_Value(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := New{{.Name}}Seq(data)
-			if got := s.Value(tt.args.v); len(got) != tt.length {
-				t.Errorf("Value() = %v, want %v", got, tt.length)
+			if got := s.MValue(tt.args.v); len(got) != tt.length {
+				t.Errorf("MValue() = %v, want %v", got, tt.length)
 			}
 		})
 	}

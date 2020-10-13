@@ -123,7 +123,7 @@ func TestFloat64Seq_Index(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Time(t *testing.T) {
+func TestFloat64Seq_MTime(t *testing.T) {
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
 	lastMonth := now.AddDate(0, -1, 0)
@@ -169,14 +169,14 @@ func TestFloat64Seq_Time(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewFloat64Seq(data)
-			if got := s.Time(tt.args.t); len(got) != tt.length {
-				t.Errorf("Time() = %v, want %v", got, tt.length)
+			if got := s.MTime(tt.args.t); len(got) != tt.length {
+				t.Errorf("MTime() = %v, want %v", got, tt.length)
 			}
 		})
 	}
 }
 
-func TestFloat64Seq_Value(t *testing.T) {
+func TestFloat64Seq_MValue(t *testing.T) {
 	data := RandomFloat64s(100)
 	Sort(data)
 
@@ -222,8 +222,8 @@ func TestFloat64Seq_Value(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewFloat64Seq(data)
-			if got := s.Value(tt.args.v); len(got) != tt.length {
-				t.Errorf("Value() = %v, want %v", got, tt.length)
+			if got := s.MValue(tt.args.v); len(got) != tt.length {
+				t.Errorf("MValue() = %v, want %v", got, tt.length)
 			}
 		})
 	}
