@@ -16,6 +16,10 @@ func (v {{.Name}}) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+func (v {{.Name}}) Equal(n {{.Name}}) bool {
+	return v.Value == n.Value && v.Time.Equal(n.Time)
+}
+
 type {{.Name}}s []{{.Name}}
 
 func (s {{.Name}}s) Len() int {
