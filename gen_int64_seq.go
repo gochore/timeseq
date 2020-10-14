@@ -386,3 +386,10 @@ func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) error {
 	}
 	return nil
 }
+
+func (s *Int64Seq) Clone() *Int64Seq {
+	if s == nil {
+		return nil
+	}
+	return newInt64Seq(s.slice)
+}
