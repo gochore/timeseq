@@ -921,3 +921,33 @@ func Test{{.Name}}Seq_Trim(t *testing.T) {
 		})
 	}
 }
+
+func Test{{.Name}}Seq_Clone(t *testing.T) {
+	data := Random{{.Name}}s(10)
+	Sort(data)
+	tests := []struct {
+		name string
+		seq  *{{.Name}}Seq
+		want *{{.Name}}Seq
+	}{
+		{
+			name: "regular",
+			seq:  New{{.Name}}Seq(data),
+			want: &{{.Name}}Seq{
+				slice: data,
+			},
+		},
+		{
+			name: "nil",
+			seq:  nil,
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.seq.Clone(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Clone() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

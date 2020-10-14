@@ -384,3 +384,10 @@ func (s *{{.Name}}Seq) Trim(fn func(i int, v {{.Name}}) bool) error {
 	}
 	return nil
 }
+
+func (s *{{.Name}}Seq) Clone() *{{.Name}}Seq {
+	if s == nil {
+		return nil
+	}
+	return new{{.Name}}Seq(s.slice)
+}
