@@ -923,3 +923,33 @@ func TestFloat64Seq_Trim(t *testing.T) {
 		})
 	}
 }
+
+func TestFloat64Seq_Clone(t *testing.T) {
+	data := RandomFloat64s(10)
+	Sort(data)
+	tests := []struct {
+		name string
+		seq  *Float64Seq
+		want *Float64Seq
+	}{
+		{
+			name: "regular",
+			seq:  NewFloat64Seq(data),
+			want: &Float64Seq{
+				slice: data,
+			},
+		},
+		{
+			name: "nil",
+			seq:  nil,
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.seq.Clone(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Clone() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

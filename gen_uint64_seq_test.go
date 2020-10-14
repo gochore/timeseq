@@ -923,3 +923,33 @@ func TestUint64Seq_Trim(t *testing.T) {
 		})
 	}
 }
+
+func TestUint64Seq_Clone(t *testing.T) {
+	data := RandomUint64s(10)
+	Sort(data)
+	tests := []struct {
+		name string
+		seq  *Uint64Seq
+		want *Uint64Seq
+	}{
+		{
+			name: "regular",
+			seq:  NewUint64Seq(data),
+			want: &Uint64Seq{
+				slice: data,
+			},
+		},
+		{
+			name: "nil",
+			seq:  nil,
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.seq.Clone(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Clone() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

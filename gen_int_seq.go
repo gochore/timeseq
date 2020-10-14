@@ -386,3 +386,10 @@ func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
 	}
 	return nil
 }
+
+func (s *IntSeq) Clone() *IntSeq {
+	if s == nil {
+		return nil
+	}
+	return newIntSeq(s.slice)
+}

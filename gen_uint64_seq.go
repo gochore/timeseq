@@ -386,3 +386,10 @@ func (s *Uint64Seq) Trim(fn func(i int, v Uint64) bool) error {
 	}
 	return nil
 }
+
+func (s *Uint64Seq) Clone() *Uint64Seq {
+	if s == nil {
+		return nil
+	}
+	return newUint64Seq(s.slice)
+}
