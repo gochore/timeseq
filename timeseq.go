@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Interface is a type which can be sorted according to time
 type Interface interface {
 	// return length
 	Len() int
@@ -53,11 +54,13 @@ func Range(slice Interface, interval Interval) Interface {
 	return slice.Slice(i, j)
 }
 
+// Interval indicates a continuous time range
 type Interval struct {
 	NotBefore *time.Time
 	NotAfter  *time.Time
 }
 
+// Contain return if time t is in the interval
 func (i Interval) Contain(t time.Time) bool {
 	if i.NotAfter != nil && t.After(*i.NotAfter) {
 		return false
@@ -68,14 +71,17 @@ func (i Interval) Contain(t time.Time) bool {
 	return true
 }
 
+// BeginAt is alias of AfterOrEqual
 func (i Interval) BeginAt(t time.Time) Interval {
 	return i.AfterOrEqual(t)
 }
 
+// EndAt is alias of BeforeOrEqual
 func (i Interval) EndAt(t time.Time) Interval {
 	return i.BeforeOrEqual(t)
 }
 
+// BeforeOrEqual return a new Interval which not before t
 func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: i.NotBefore,
@@ -83,6 +89,7 @@ func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	}
 }
 
+// AfterOrEqual return a new Interval which not after t
 func (i Interval) AfterOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: &t,
@@ -90,6 +97,7 @@ func (i Interval) AfterOrEqual(t time.Time) Interval {
 	}
 }
 
+// Before return a new Interval which before t
 func (i Interval) Before(t time.Time) Interval {
 	t = t.Add(-1)
 	return Interval{
@@ -98,6 +106,7 @@ func (i Interval) Before(t time.Time) Interval {
 	}
 }
 
+// After return a new Interval which after t
 func (i Interval) After(t time.Time) Interval {
 	t = t.Add(1)
 	return Interval{
@@ -106,26 +115,31 @@ func (i Interval) After(t time.Time) Interval {
 	}
 }
 
+// BeginAt is alias of AfterOrEqual
 func BeginAt(t time.Time) Interval {
 	return AfterOrEqual(t)
 }
 
+// EndAt is alias of BeforeOrEqual
 func EndAt(t time.Time) Interval {
 	return BeforeOrEqual(t)
 }
 
+// BeforeOrEqual return a new Interval which not before t
 func BeforeOrEqual(t time.Time) Interval {
 	return Interval{
 		NotAfter: &t,
 	}
 }
 
+// AfterOrEqual return a new Interval which not after t
 func AfterOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: &t,
 	}
 }
 
+// Before return a new Interval which before t
 func Before(t time.Time) Interval {
 	t = t.Add(-1)
 	return Interval{
@@ -133,6 +147,7 @@ func Before(t time.Time) Interval {
 	}
 }
 
+// After return a new Interval which after t
 func After(t time.Time) Interval {
 	t = t.Add(1)
 	return Interval{
@@ -140,15 +155,15 @@ func After(t time.Time) Interval {
 	}
 }
 
-type timeKey [16]byte
+type timeKey [12]byte
 
-//func (k timeKey) Get() time.Time {
-//	return time.Unix(int64(binary.BigEndian.Uint64(k[:8])), int64(binary.BigEndian.Uint64(k[8:])))
-//}
+func (k timeKey) Time() time.Time {
+	return time.Unix(int64(binary.BigEndian.Uint64(k[:8])), int64(binary.BigEndian.Uint32(k[8:])))
+}
 
 func newTimeKey(t time.Time) timeKey {
-	var ret [16]byte
+	var ret [12]byte
 	binary.BigEndian.PutUint64(ret[:8], uint64(t.Unix()))
-	binary.BigEndian.PutUint64(ret[8:], uint64(t.UnixNano()))
+	binary.BigEndian.PutUint32(ret[8:], uint32(t.Nanosecond()))
 	return ret
 }

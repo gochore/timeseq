@@ -335,7 +335,7 @@ func TestIntSeq_MValue(t *testing.T) {
 	}
 }
 
-func TestIntSeq_Visit(t *testing.T) {
+func TestIntSeq_Traverse(t *testing.T) {
 	data := RandomInts(100)
 
 	type args struct {
@@ -365,7 +365,7 @@ func TestIntSeq_Visit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewIntSeq(data)
-			s.Visit(tt.args.fn)
+			s.Traverse(tt.args.fn)
 		})
 	}
 }

@@ -9,37 +9,46 @@ import (
 	"time"
 )
 
+// Int is a time point with int value inside
 type Int struct {
 	Time  time.Time
 	Value int
 }
 
+// IsZero return if time and value are both zero
 func (v Int) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+// IsZero return if time and value are both equal
 func (v Int) Equal(n Int) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
 
+// Ints is a alias of Int slice
 type Ints []Int
 
+// Len implements Interface.Len()
 func (s Ints) Len() int {
 	return len(s)
 }
 
+// Swap implements Interface.Swap()
 func (s Ints) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// Time implements Interface.Time()
 func (s Ints) Time(i int) time.Time {
 	return s[i].Time
 }
 
+// Slice implements Interface.Slice()
 func (s Ints) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
+// IntSeq is a wrapper with useful methods of Int slice
 type IntSeq struct {
 	slice Ints
 
@@ -49,12 +58,14 @@ type IntSeq struct {
 	valueSlice []int
 }
 
+// NewIntSeq return *IntSeq with copied slice inside
 func NewIntSeq(slice Ints) *IntSeq {
 	temp := make(Ints, len(slice))
 	copy(temp, slice)
 	return WrapIntSeq(temp)
 }
 
+// WrapIntSeq return *IntSeq with origin slice inside
 func WrapIntSeq(slice Ints) *IntSeq {
 	if !IsSorted(slice) {
 		Sort(slice)
@@ -93,16 +104,19 @@ func (s *IntSeq) resetIndex() {
 	s.indexOnce = sync.Once{}
 }
 
+// Ints return a replica of inside slice
 func (s *IntSeq) Ints() Ints {
 	slice := make(Ints, len(s.slice))
 	copy(slice, s.slice)
 	return slice
 }
 
+// Len return length of inside slice
 func (s *IntSeq) Len() int {
 	return len(s.slice)
 }
 
+// Index return element of inside slice, return zero if index is out of range
 func (s *IntSeq) Index(i int) Int {
 	if i < 0 || i >= len(s.slice) {
 		return Int{}
@@ -110,6 +124,7 @@ func (s *IntSeq) Index(i int) Int {
 	return s.slice[i]
 }
 
+// Time return the first element with time t, return zero if not found
 func (s *IntSeq) Time(t time.Time) Int {
 	got := s.MTime(t)
 	if len(got) == 0 {
@@ -118,6 +133,7 @@ func (s *IntSeq) Time(t time.Time) Int {
 	return got[0]
 }
 
+// MTime return all elements with time t, return nil if not found
 func (s *IntSeq) MTime(t time.Time) Ints {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
@@ -131,6 +147,7 @@ func (s *IntSeq) MTime(t time.Time) Ints {
 	return ret
 }
 
+// Value return the first element with value v, return zero if not found
 func (s *IntSeq) Value(v int) Int {
 	got := s.MValue(v)
 	if len(got) == 0 {
@@ -139,6 +156,7 @@ func (s *IntSeq) Value(v int) Int {
 	return got[0]
 }
 
+// MValue return all elements with value v, return nil if not found
 func (s *IntSeq) MValue(v int) Ints {
 	s.buildIndex()
 	index := s.valueIndex[v]
@@ -152,7 +170,8 @@ func (s *IntSeq) MValue(v int) Ints {
 	return ret
 }
 
-func (s *IntSeq) Visit(fn func(i int, v Int) (stop bool)) {
+// Traverse call fn for every element one by one, break if fn return true
+func (s *IntSeq) Traverse(fn func(i int, v Int) (stop bool)) {
 	for i, v := range s.slice {
 		if fn != nil && fn(i, v) {
 			break
@@ -160,6 +179,7 @@ func (s *IntSeq) Visit(fn func(i int, v Int) (stop bool)) {
 	}
 }
 
+// Sum return sum of all values
 func (s *IntSeq) Sum() int {
 	var ret int
 	for _, v := range s.slice {
@@ -168,10 +188,12 @@ func (s *IntSeq) Sum() int {
 	return ret
 }
 
+// Count return count of elements, same as Len
 func (s *IntSeq) Count() int {
 	return s.Len()
 }
 
+// Max return the element with max value, return zero if empty
 func (s *IntSeq) Max() Int {
 	var max Int
 	found := false
@@ -186,6 +208,7 @@ func (s *IntSeq) Max() Int {
 	return max
 }
 
+// Max return the element with min value, return zero if empty
 func (s *IntSeq) Min() Int {
 	var min Int
 	found := false
@@ -200,6 +223,7 @@ func (s *IntSeq) Min() Int {
 	return min
 }
 
+// First return the first element, return zero if empty
 func (s *IntSeq) First() Int {
 	if len(s.slice) == 0 {
 		return Int{}
@@ -207,6 +231,7 @@ func (s *IntSeq) First() Int {
 	return s.slice[0]
 }
 
+// Last return the last element, return zero if empty
 func (s *IntSeq) Last() Int {
 	if len(s.slice) == 0 {
 		return Int{}
@@ -214,6 +239,8 @@ func (s *IntSeq) Last() Int {
 	return s.slice[len(s.slice)-1]
 }
 
+// Percentile return the element matched with percentile pct, return zero if empty,
+// the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
 func (s *IntSeq) Percentile(pct float64) Int {
 	s.buildIndex()
 	if len(s.slice) == 0 {
@@ -232,11 +259,13 @@ func (s *IntSeq) Percentile(pct float64) Int {
 	return s.slice[s.valueSlice[i]]
 }
 
+// Range return a sub *IntSeq with specified interval
 func (s *IntSeq) Range(interval Interval) *IntSeq {
 	slice := Range(s.slice, interval).(Ints)
 	return newIntSeq(slice)
 }
 
+// Merge merge slices to inside slice according to the specified rule
 func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -304,6 +333,7 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 	return nil
 }
 
+// Aggregate aggregate inside slice according to the specified rule
 func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -365,6 +395,7 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 	return nil
 }
 
+// Trim remove the elements which make fn return true
 func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -387,6 +418,7 @@ func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
 	return nil
 }
 
+// Clone return a new *IntSeq with copied slice inside
 func (s *IntSeq) Clone() *IntSeq {
 	if s == nil {
 		return nil

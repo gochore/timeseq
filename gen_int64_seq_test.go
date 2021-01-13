@@ -335,7 +335,7 @@ func TestInt64Seq_MValue(t *testing.T) {
 	}
 }
 
-func TestInt64Seq_Visit(t *testing.T) {
+func TestInt64Seq_Traverse(t *testing.T) {
 	data := RandomInt64s(100)
 
 	type args struct {
@@ -365,7 +365,7 @@ func TestInt64Seq_Visit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(data)
-			s.Visit(tt.args.fn)
+			s.Traverse(tt.args.fn)
 		})
 	}
 }

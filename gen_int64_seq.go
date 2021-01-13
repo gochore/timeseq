@@ -9,37 +9,46 @@ import (
 	"time"
 )
 
+// Int64 is a time point with int64 value inside
 type Int64 struct {
 	Time  time.Time
 	Value int64
 }
 
+// IsZero return if time and value are both zero
 func (v Int64) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+// IsZero return if time and value are both equal
 func (v Int64) Equal(n Int64) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
 
+// Int64s is a alias of Int64 slice
 type Int64s []Int64
 
+// Len implements Interface.Len()
 func (s Int64s) Len() int {
 	return len(s)
 }
 
+// Swap implements Interface.Swap()
 func (s Int64s) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// Time implements Interface.Time()
 func (s Int64s) Time(i int) time.Time {
 	return s[i].Time
 }
 
+// Slice implements Interface.Slice()
 func (s Int64s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
+// Int64Seq is a wrapper with useful methods of Int64 slice
 type Int64Seq struct {
 	slice Int64s
 
@@ -49,12 +58,14 @@ type Int64Seq struct {
 	valueSlice []int
 }
 
+// NewInt64Seq return *Int64Seq with copied slice inside
 func NewInt64Seq(slice Int64s) *Int64Seq {
 	temp := make(Int64s, len(slice))
 	copy(temp, slice)
 	return WrapInt64Seq(temp)
 }
 
+// WrapInt64Seq return *Int64Seq with origin slice inside
 func WrapInt64Seq(slice Int64s) *Int64Seq {
 	if !IsSorted(slice) {
 		Sort(slice)
@@ -93,16 +104,19 @@ func (s *Int64Seq) resetIndex() {
 	s.indexOnce = sync.Once{}
 }
 
+// Int64s return a replica of inside slice
 func (s *Int64Seq) Int64s() Int64s {
 	slice := make(Int64s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
 }
 
+// Len return length of inside slice
 func (s *Int64Seq) Len() int {
 	return len(s.slice)
 }
 
+// Index return element of inside slice, return zero if index is out of range
 func (s *Int64Seq) Index(i int) Int64 {
 	if i < 0 || i >= len(s.slice) {
 		return Int64{}
@@ -110,6 +124,7 @@ func (s *Int64Seq) Index(i int) Int64 {
 	return s.slice[i]
 }
 
+// Time return the first element with time t, return zero if not found
 func (s *Int64Seq) Time(t time.Time) Int64 {
 	got := s.MTime(t)
 	if len(got) == 0 {
@@ -118,6 +133,7 @@ func (s *Int64Seq) Time(t time.Time) Int64 {
 	return got[0]
 }
 
+// MTime return all elements with time t, return nil if not found
 func (s *Int64Seq) MTime(t time.Time) Int64s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
@@ -131,6 +147,7 @@ func (s *Int64Seq) MTime(t time.Time) Int64s {
 	return ret
 }
 
+// Value return the first element with value v, return zero if not found
 func (s *Int64Seq) Value(v int64) Int64 {
 	got := s.MValue(v)
 	if len(got) == 0 {
@@ -139,6 +156,7 @@ func (s *Int64Seq) Value(v int64) Int64 {
 	return got[0]
 }
 
+// MValue return all elements with value v, return nil if not found
 func (s *Int64Seq) MValue(v int64) Int64s {
 	s.buildIndex()
 	index := s.valueIndex[v]
@@ -152,7 +170,8 @@ func (s *Int64Seq) MValue(v int64) Int64s {
 	return ret
 }
 
-func (s *Int64Seq) Visit(fn func(i int, v Int64) (stop bool)) {
+// Traverse call fn for every element one by one, break if fn return true
+func (s *Int64Seq) Traverse(fn func(i int, v Int64) (stop bool)) {
 	for i, v := range s.slice {
 		if fn != nil && fn(i, v) {
 			break
@@ -160,6 +179,7 @@ func (s *Int64Seq) Visit(fn func(i int, v Int64) (stop bool)) {
 	}
 }
 
+// Sum return sum of all values
 func (s *Int64Seq) Sum() int64 {
 	var ret int64
 	for _, v := range s.slice {
@@ -168,10 +188,12 @@ func (s *Int64Seq) Sum() int64 {
 	return ret
 }
 
+// Count return count of elements, same as Len
 func (s *Int64Seq) Count() int {
 	return s.Len()
 }
 
+// Max return the element with max value, return zero if empty
 func (s *Int64Seq) Max() Int64 {
 	var max Int64
 	found := false
@@ -186,6 +208,7 @@ func (s *Int64Seq) Max() Int64 {
 	return max
 }
 
+// Max return the element with min value, return zero if empty
 func (s *Int64Seq) Min() Int64 {
 	var min Int64
 	found := false
@@ -200,6 +223,7 @@ func (s *Int64Seq) Min() Int64 {
 	return min
 }
 
+// First return the first element, return zero if empty
 func (s *Int64Seq) First() Int64 {
 	if len(s.slice) == 0 {
 		return Int64{}
@@ -207,6 +231,7 @@ func (s *Int64Seq) First() Int64 {
 	return s.slice[0]
 }
 
+// Last return the last element, return zero if empty
 func (s *Int64Seq) Last() Int64 {
 	if len(s.slice) == 0 {
 		return Int64{}
@@ -214,6 +239,8 @@ func (s *Int64Seq) Last() Int64 {
 	return s.slice[len(s.slice)-1]
 }
 
+// Percentile return the element matched with percentile pct, return zero if empty,
+// the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
 func (s *Int64Seq) Percentile(pct float64) Int64 {
 	s.buildIndex()
 	if len(s.slice) == 0 {
@@ -232,11 +259,13 @@ func (s *Int64Seq) Percentile(pct float64) Int64 {
 	return s.slice[s.valueSlice[i]]
 }
 
+// Range return a sub *Int64Seq with specified interval
 func (s *Int64Seq) Range(interval Interval) *Int64Seq {
 	slice := Range(s.slice, interval).(Int64s)
 	return newInt64Seq(slice)
 }
 
+// Merge merge slices to inside slice according to the specified rule
 func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, slices ...Int64s) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -304,6 +333,7 @@ func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, slices ...I
 	return nil
 }
 
+// Aggregate aggregate inside slice according to the specified rule
 func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -365,6 +395,7 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 	return nil
 }
 
+// Trim remove the elements which make fn return true
 func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -387,6 +418,7 @@ func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) error {
 	return nil
 }
 
+// Clone return a new *Int64Seq with copied slice inside
 func (s *Int64Seq) Clone() *Int64Seq {
 	if s == nil {
 		return nil
