@@ -140,15 +140,15 @@ func After(t time.Time) Interval {
 	}
 }
 
-type timeKey [16]byte
+type timeKey [12]byte
 
-//func (k timeKey) Get() time.Time {
-//	return time.Unix(int64(binary.BigEndian.Uint64(k[:8])), int64(binary.BigEndian.Uint64(k[8:])))
-//}
+func (k timeKey) Time() time.Time {
+	return time.Unix(int64(binary.BigEndian.Uint64(k[:8])), int64(binary.BigEndian.Uint32(k[8:])))
+}
 
 func newTimeKey(t time.Time) timeKey {
-	var ret [16]byte
+	var ret [12]byte
 	binary.BigEndian.PutUint64(ret[:8], uint64(t.Unix()))
-	binary.BigEndian.PutUint64(ret[8:], uint64(t.UnixNano()))
+	binary.BigEndian.PutUint32(ret[8:], uint32(t.Nanosecond()))
 	return ret
 }
