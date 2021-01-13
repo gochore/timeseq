@@ -9,37 +9,46 @@ import (
 	"time"
 )
 
+// Float64 is a time point with float64 value inside
 type Float64 struct {
 	Time  time.Time
 	Value float64
 }
 
+// IsZero return if time and value are both zero
 func (v Float64) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
+// IsZero return if time and value are both equal
 func (v Float64) Equal(n Float64) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
 
+// Float64s is a alias of Float64 slice
 type Float64s []Float64
 
+// Len implements Interface.Len()
 func (s Float64s) Len() int {
 	return len(s)
 }
 
+// Swap implements Interface.Swap()
 func (s Float64s) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
+// Time implements Interface.Time()
 func (s Float64s) Time(i int) time.Time {
 	return s[i].Time
 }
 
+// Slice implements Interface.Slice()
 func (s Float64s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
+// Float64Seq is a wrapper with useful methods of Float64 slice
 type Float64Seq struct {
 	slice Float64s
 
@@ -49,12 +58,14 @@ type Float64Seq struct {
 	valueSlice []int
 }
 
+// NewFloat64Seq return *Float64Seq with copied slice inside
 func NewFloat64Seq(slice Float64s) *Float64Seq {
 	temp := make(Float64s, len(slice))
 	copy(temp, slice)
 	return WrapFloat64Seq(temp)
 }
 
+// WrapFloat64Seq return *Float64Seq with origin slice inside
 func WrapFloat64Seq(slice Float64s) *Float64Seq {
 	if !IsSorted(slice) {
 		Sort(slice)
@@ -93,16 +104,19 @@ func (s *Float64Seq) resetIndex() {
 	s.indexOnce = sync.Once{}
 }
 
+// Float64s return a replica of inside slice
 func (s *Float64Seq) Float64s() Float64s {
 	slice := make(Float64s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
 }
 
+// Len return length of inside slice
 func (s *Float64Seq) Len() int {
 	return len(s.slice)
 }
 
+// Index return element of inside slice, return zero if index is out of range
 func (s *Float64Seq) Index(i int) Float64 {
 	if i < 0 || i >= len(s.slice) {
 		return Float64{}
@@ -110,6 +124,7 @@ func (s *Float64Seq) Index(i int) Float64 {
 	return s.slice[i]
 }
 
+// Time return the first element with time t, return zero if not found
 func (s *Float64Seq) Time(t time.Time) Float64 {
 	got := s.MTime(t)
 	if len(got) == 0 {
@@ -118,6 +133,7 @@ func (s *Float64Seq) Time(t time.Time) Float64 {
 	return got[0]
 }
 
+// MTime return all elements with time t, return nil if not found
 func (s *Float64Seq) MTime(t time.Time) Float64s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
@@ -131,6 +147,7 @@ func (s *Float64Seq) MTime(t time.Time) Float64s {
 	return ret
 }
 
+// Value return the first element with value v, return zero if not found
 func (s *Float64Seq) Value(v float64) Float64 {
 	got := s.MValue(v)
 	if len(got) == 0 {
@@ -139,6 +156,7 @@ func (s *Float64Seq) Value(v float64) Float64 {
 	return got[0]
 }
 
+// MValue return all elements with value v, return nil if not found
 func (s *Float64Seq) MValue(v float64) Float64s {
 	s.buildIndex()
 	index := s.valueIndex[v]
@@ -152,7 +170,8 @@ func (s *Float64Seq) MValue(v float64) Float64s {
 	return ret
 }
 
-func (s *Float64Seq) Visit(fn func(i int, v Float64) (stop bool)) {
+// Traverse call fn for every element one by one, break if fn return true
+func (s *Float64Seq) Traverse(fn func(i int, v Float64) (stop bool)) {
 	for i, v := range s.slice {
 		if fn != nil && fn(i, v) {
 			break
@@ -160,6 +179,7 @@ func (s *Float64Seq) Visit(fn func(i int, v Float64) (stop bool)) {
 	}
 }
 
+// Sum return sum of all values
 func (s *Float64Seq) Sum() float64 {
 	var ret float64
 	for _, v := range s.slice {
@@ -168,10 +188,12 @@ func (s *Float64Seq) Sum() float64 {
 	return ret
 }
 
+// Count return count of elements, same as Len
 func (s *Float64Seq) Count() int {
 	return s.Len()
 }
 
+// Max return the element with max value, return zero if empty
 func (s *Float64Seq) Max() Float64 {
 	var max Float64
 	found := false
@@ -186,6 +208,7 @@ func (s *Float64Seq) Max() Float64 {
 	return max
 }
 
+// Max return the element with min value, return zero if empty
 func (s *Float64Seq) Min() Float64 {
 	var min Float64
 	found := false
@@ -200,6 +223,7 @@ func (s *Float64Seq) Min() Float64 {
 	return min
 }
 
+// First return the first element, return zero if empty
 func (s *Float64Seq) First() Float64 {
 	if len(s.slice) == 0 {
 		return Float64{}
@@ -207,6 +231,7 @@ func (s *Float64Seq) First() Float64 {
 	return s.slice[0]
 }
 
+// Last return the last element, return zero if empty
 func (s *Float64Seq) Last() Float64 {
 	if len(s.slice) == 0 {
 		return Float64{}
@@ -214,6 +239,8 @@ func (s *Float64Seq) Last() Float64 {
 	return s.slice[len(s.slice)-1]
 }
 
+// Percentile return the element matched with percentile pct, return zero if empty,
+// the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
 func (s *Float64Seq) Percentile(pct float64) Float64 {
 	s.buildIndex()
 	if len(s.slice) == 0 {
@@ -232,11 +259,13 @@ func (s *Float64Seq) Percentile(pct float64) Float64 {
 	return s.slice[s.valueSlice[i]]
 }
 
+// Range return a sub *Float64Seq with specified interval
 func (s *Float64Seq) Range(interval Interval) *Float64Seq {
 	slice := Range(s.slice, interval).(Float64s)
 	return newFloat64Seq(slice)
 }
 
+// Merge merge slices to inside slice according to the specified rule
 func (s *Float64Seq) Merge(fn func(t time.Time, v1, v2 *float64) *float64, slices ...Float64s) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -304,6 +333,7 @@ func (s *Float64Seq) Merge(fn func(t time.Time, v1, v2 *float64) *float64, slice
 	return nil
 }
 
+// Aggregate aggregate inside slice according to the specified rule
 func (s *Float64Seq) Aggregate(fn func(t time.Time, slice Float64s) *float64, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -365,6 +395,7 @@ func (s *Float64Seq) Aggregate(fn func(t time.Time, slice Float64s) *float64, du
 	return nil
 }
 
+// Trim remove the elements which make fn return true
 func (s *Float64Seq) Trim(fn func(i int, v Float64) bool) error {
 	if fn == nil {
 		return errors.New("nil fn")
@@ -387,6 +418,7 @@ func (s *Float64Seq) Trim(fn func(i int, v Float64) bool) error {
 	return nil
 }
 
+// Clone return a new *Float64Seq with copied slice inside
 func (s *Float64Seq) Clone() *Float64Seq {
 	if s == nil {
 		return nil
