@@ -71,6 +71,23 @@ func (i Interval) Contain(t time.Time) bool {
 	return true
 }
 
+// String returns the interval formatted using the RFC3339 format string
+func (i *Interval) String() string {
+	return i.Format(time.RFC3339)
+}
+
+// Format returns a textual representation of the time value formatted according to layout
+func (i *Interval) Format(layout string) string {
+	notBefore, notAfter := "nil", "nil"
+	if i.NotBefore != nil {
+		notBefore = i.NotBefore.Format(layout)
+	}
+	if i.NotAfter != nil {
+		notAfter = i.NotAfter.Format(layout)
+	}
+	return notBefore + "~" + notAfter
+}
+
 // BeginAt is alias of AfterOrEqual
 func (i Interval) BeginAt(t time.Time) Interval {
 	return i.AfterOrEqual(t)

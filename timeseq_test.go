@@ -1,6 +1,7 @@
 package timeseq
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -148,6 +149,87 @@ func Test_timeKey_Time(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.k.Time(); !got.Equal(tt.want) {
 				t.Errorf("Time() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInterval_String(t *testing.T) {
+	now := time.Now()
+
+	tests := []struct {
+		name     string
+		interval Interval
+		want     string
+	}{
+		{
+			name:     "regular",
+			interval: Interval{}.BeginAt(now).EndAt(now.Add(time.Hour)),
+			want:     fmt.Sprintf("%v~%v", now.Format(time.RFC3339), now.Add(time.Hour).Format(time.RFC3339)),
+		},
+		{
+			name:     "miss begin",
+			interval: Interval{}.EndAt(now),
+			want:     fmt.Sprintf("nil~%v", now.Format(time.RFC3339)),
+		},
+		{
+			name:     "miss end",
+			interval: Interval{}.BeginAt(now),
+			want:     fmt.Sprintf("%v~nil", now.Format(time.RFC3339)),
+		},
+		{
+			name:     "miss all",
+			interval: Interval{},
+			want:     "nil~nil",
+		},
+		{
+			name:     "after",
+			interval: Interval{}.After(now),
+			want:     fmt.Sprintf("%v~nil", now.Format(time.RFC3339)),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.interval.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInterval_Format(t *testing.T) {
+	now := time.Now()
+
+	type args struct {
+		layout string
+	}
+	tests := []struct {
+		name     string
+		interval Interval
+		args     args
+		want     string
+	}{
+		{
+			name:     "regular",
+			interval: Interval{}.BeginAt(now).EndAt(now.Add(time.Hour)),
+			args: args{
+				layout: time.RFC3339,
+			},
+			want: fmt.Sprintf("%v~%v", now.Format(time.RFC3339), now.Add(time.Hour).Format(time.RFC3339)),
+		},
+		{
+			name:     "nano",
+			interval: Interval{}.After(now),
+			args: args{
+				layout: time.RFC3339Nano,
+			},
+			want: fmt.Sprintf("%v~nil", now.Add(1).Format(time.RFC3339Nano)),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.interval.Format(tt.args.layout); got != tt.want {
+				t.Errorf("Format() = %v, want %v", got, tt.want)
 			}
 		})
 	}
