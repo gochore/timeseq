@@ -7,9 +7,14 @@
 [![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/gochore/timeseq)](https://github.com/gochore/timeseq/blob/master/go.mod)
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/gochore/timeseq)](https://github.com/gochore/timeseq/releases)
 
-Time sequence. This package defines some simple types for time series data and provides useful methods to deal with them.
+Time sequence.
+
+This package defines some simple types like `Int64Seq` `Float64Seq` for time series data, and provides useful methods to deal with them, you can `Merge`, `Trim` or `Aggregate` your data.
+
 
 ## Install
+
+Requires a Go version with [modules](https://github.com/golang/go/wiki/Modules) support.
 
 ```bash
 go get github.com/gochore/timeseq/v2
