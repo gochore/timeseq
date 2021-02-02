@@ -121,6 +121,14 @@ func TestInterval_Contain(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name:     "EndAt",
+			interval: EndAt(now),
+			args: args{
+				t: now,
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
