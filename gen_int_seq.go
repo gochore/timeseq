@@ -20,7 +20,7 @@ func (v Int) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
-// IsZero return if time and value are both equal
+// Equal return if time and value are both equal
 func (v Int) Equal(n Int) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
@@ -188,11 +188,6 @@ func (s *IntSeq) Sum() int {
 	return ret
 }
 
-// Count return count of elements, same as Len
-func (s *IntSeq) Count() int {
-	return s.Len()
-}
-
 // Max return the element with max value, return zero if empty
 func (s *IntSeq) Max() Int {
 	var max Int
@@ -208,7 +203,7 @@ func (s *IntSeq) Max() Int {
 	return max
 }
 
-// Max return the element with min value, return zero if empty
+// Min return the element with min value, return zero if empty
 func (s *IntSeq) Min() Int {
 	var min Int
 	found := false

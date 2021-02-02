@@ -186,11 +186,6 @@ func (s *{{.Name}}Seq) Sum() {{.Type}} {
 	return ret
 }
 
-// Count return count of elements, same as Len
-func (s *{{.Name}}Seq) Count() int {
-	return s.Len()
-}
-
 // Max return the element with max value, return zero if empty
 func (s *{{.Name}}Seq) Max() {{.Name}} {
 	var max {{.Name}}

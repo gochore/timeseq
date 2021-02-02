@@ -396,28 +396,6 @@ func TestInt64Seq_Sum(t *testing.T) {
 	}
 }
 
-func TestInt64Seq_Count(t *testing.T) {
-	data := RandomInt64s(100)
-
-	tests := []struct {
-		name string
-		want int
-	}{
-		{
-			name: "regular",
-			want: len(data),
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := NewInt64Seq(data)
-			if got := s.Count(); got != tt.want {
-				t.Errorf("Count() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestInt64Seq_Max(t *testing.T) {
 	data := RandomInt64s(100)
 	max := data[0]
