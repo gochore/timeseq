@@ -18,9 +18,13 @@ func RandomUint64s(length int) Uint64s {
 		if rand.Float64() < 0.5 {
 			delta = -delta
 		}
+		value := rand.Uint64()
+		for value == 0 || value == 1 || value == 2 { // reserved values
+			value = rand.Uint64()
+		}
 		ret[i] = Uint64{
 			Time:  now.Add(delta),
-			Value: rand.Uint64(),
+			Value: value,
 		}
 	}
 	return ret
@@ -233,14 +237,10 @@ func TestUint64Seq_Value(t *testing.T) {
 	data := RandomUint64s(100)
 	Sort(data)
 
-	value1 := data[0].Value
-	value2 := data[1].Value
-	value3 := data[2].Value
-
-	data[0].Value = value1
-	data[1].Value = value2
-	data[2].Value = value2
-	data[3].Value = value2
+	data[0].Value = 0
+	data[1].Value = 1
+	data[2].Value = 1
+	data[3].Value = 1
 
 	type args struct {
 		v uint64
@@ -253,21 +253,21 @@ func TestUint64Seq_Value(t *testing.T) {
 		{
 			name: "regular",
 			args: args{
-				v: value1,
+				v: 0,
 			},
 			want: data[0],
 		},
 		{
 			name: "multiple",
 			args: args{
-				v: value2,
+				v: 1,
 			},
 			want: data[1],
 		},
 		{
 			name: "none",
 			args: args{
-				v: value3,
+				v: 2,
 			},
 			want: Uint64{},
 		},
@@ -286,14 +286,10 @@ func TestUint64Seq_MValue(t *testing.T) {
 	data := RandomUint64s(100)
 	Sort(data)
 
-	value1 := data[0].Value
-	value2 := data[1].Value
-	value3 := data[2].Value
-
-	data[0].Value = value1
-	data[1].Value = value2
-	data[2].Value = value2
-	data[3].Value = value2
+	data[0].Value = 0
+	data[1].Value = 1
+	data[2].Value = 1
+	data[3].Value = 1
 
 	type args struct {
 		v uint64
@@ -306,21 +302,21 @@ func TestUint64Seq_MValue(t *testing.T) {
 		{
 			name: "regular",
 			args: args{
-				v: value1,
+				v: 0,
 			},
 			length: 1,
 		},
 		{
 			name: "multiple",
 			args: args{
-				v: value2,
+				v: 1,
 			},
 			length: 3,
 		},
 		{
 			name: "none",
 			args: args{
-				v: value3,
+				v: 2,
 			},
 			length: 0,
 		},
