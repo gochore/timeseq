@@ -827,6 +827,60 @@ func TestUint32Seq_Aggregate(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "shorter interval with zero duraion",
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					ret := uint32(t.Hour())
+					if len(slice) != 0 {
+						ret = 0
+					}
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: 0,
+				interval: BeginAt(now).EndAt(end),
+			},
+			wantErr: false,
+		},
+		{
+			name: "shorter interval with non zero duraion",
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					ret := uint32(t.Hour())
+					if len(slice) != 0 {
+						ret = 0
+					}
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Minute,
+				interval: BeginAt(now).EndAt(end),
+			},
+			wantErr: false,
+		},
+		{
+			name: "miss begin",
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					ret := uint32(t.Hour())
+					if len(slice) != 0 {
+						ret = 0
+					}
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Minute,
+				interval: EndAt(end),
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
