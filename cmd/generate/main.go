@@ -26,27 +26,21 @@ func main() {
 	}
 
 	metas := []Meta{
-		{
-			Name:   "Int64",
-			Type:   "int64",
-			Random: "rand.Int63()",
-		},
-		{
-			Name:   "Uint64",
-			Type:   "uint64",
-			Random: "rand.Uint64()",
-		},
-		{
-			Name:   "Float64",
-			Type:   "float64",
-			Random: "rand.Float64()",
-		},
-		{
-			Name:   "Int",
-			Type:   "int",
-			Random: "rand.Int()",
-		},
-		// TODO more types
+		{Name: "Uint8", Type: "uint8", Random: "uint8(rand.Uint32())"},
+		{Name: "Uint16", Type: "uint16", Random: "uint16(rand.Uint32())"},
+		{Name: "Uint32", Type: "uint32", Random: "rand.Uint32()"},
+		{Name: "Uint64", Type: "uint64", Random: "rand.Uint64()"},
+
+		{Name: "Int8", Type: "int8", Random: "int8(rand.Int31())"},
+		{Name: "Int16", Type: "int16", Random: "int16(rand.Int31())"},
+		{Name: "Int32", Type: "int32", Random: "rand.Int31()"},
+		{Name: "Int64", Type: "int64", Random: "rand.Int63()"},
+
+		{Name: "Float32", Type: "float32", Random: "rand.Float32()"},
+		{Name: "Float64", Type: "float64", Random: "rand.Float64()"},
+
+		{Name: "Int", Type: "int", Random: "rand.Int()"},
+		{Name: "Uint", Type: "uint", Random: "uint(rand.Uint32())"},
 	}
 
 	for _, v := range metas {

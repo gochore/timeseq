@@ -9,81 +9,81 @@ import (
 	"time"
 )
 
-// Int is a time point with int value inside
-type Int struct {
+// Float32 is a time point with float32 value inside
+type Float32 struct {
 	Time  time.Time
-	Value int
+	Value float32
 }
 
 // IsZero return if time and value are both zero
-func (v Int) IsZero() bool {
+func (v Float32) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
 // Equal return if time and value are both equal
-func (v Int) Equal(n Int) bool {
+func (v Float32) Equal(n Float32) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
 
-// Ints is a alias of Int slice
-type Ints []Int
+// Float32s is a alias of Float32 slice
+type Float32s []Float32
 
 // Len implements Interface.Len()
-func (s Ints) Len() int {
+func (s Float32s) Len() int {
 	return len(s)
 }
 
 // Swap implements Interface.Swap()
-func (s Ints) Swap(i, j int) {
+func (s Float32s) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
 // Time implements Interface.Time()
-func (s Ints) Time(i int) time.Time {
+func (s Float32s) Time(i int) time.Time {
 	return s[i].Time
 }
 
 // Slice implements Interface.Slice()
-func (s Ints) Slice(i, j int) Interface {
+func (s Float32s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
-// IntSeq is a wrapper with useful methods of Int slice
-type IntSeq struct {
-	slice Ints
+// Float32Seq is a wrapper with useful methods of Float32 slice
+type Float32Seq struct {
+	slice Float32s
 
 	indexOnce  sync.Once
 	timeIndex  map[timeKey][]int
-	valueIndex map[int][]int
+	valueIndex map[float32][]int
 	valueSlice []int
 }
 
-// NewIntSeq return *IntSeq with copied slice inside
-func NewIntSeq(slice Ints) *IntSeq {
-	temp := make(Ints, len(slice))
+// NewFloat32Seq return *Float32Seq with copied slice inside
+func NewFloat32Seq(slice Float32s) *Float32Seq {
+	temp := make(Float32s, len(slice))
 	copy(temp, slice)
-	return WrapIntSeq(temp)
+	return WrapFloat32Seq(temp)
 }
 
-// WrapIntSeq return *IntSeq with origin slice inside
-func WrapIntSeq(slice Ints) *IntSeq {
+// WrapFloat32Seq return *Float32Seq with origin slice inside
+func WrapFloat32Seq(slice Float32s) *Float32Seq {
 	if !IsSorted(slice) {
 		Sort(slice)
 	}
-	return newIntSeq(slice)
+	return newFloat32Seq(slice)
 }
 
-func newIntSeq(slice Ints) *IntSeq {
-	ret := &IntSeq{
+func newFloat32Seq(slice Float32s) *Float32Seq {
+	ret := &Float32Seq{
 		slice: slice,
 	}
 	return ret
 }
 
-func (s *IntSeq) buildIndex() {
+func (s *Float32Seq) buildIndex() {
 	s.indexOnce.Do(func() {
 		timeIndex := make(map[timeKey][]int, len(s.slice))
-		valueIndex := make(map[int][]int, len(s.slice))
+		valueIndex := make(map[float32][]int, len(s.slice))
 		valueSlice := s.valueSlice[:0]
 		for i, v := range s.slice {
 			k := newTimeKey(v.Time)
@@ -100,47 +100,47 @@ func (s *IntSeq) buildIndex() {
 	})
 }
 
-func (s *IntSeq) resetIndex() {
+func (s *Float32Seq) resetIndex() {
 	s.indexOnce = sync.Once{}
 }
 
-// Ints return a replica of inside slice
-func (s *IntSeq) Ints() Ints {
-	slice := make(Ints, len(s.slice))
+// Float32s return a replica of inside slice
+func (s *Float32Seq) Float32s() Float32s {
+	slice := make(Float32s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
 }
 
 // Len return length of inside slice
-func (s *IntSeq) Len() int {
+func (s *Float32Seq) Len() int {
 	return len(s.slice)
 }
 
 // Index return element of inside slice, return zero if index is out of range
-func (s *IntSeq) Index(i int) Int {
+func (s *Float32Seq) Index(i int) Float32 {
 	if i < 0 || i >= len(s.slice) {
-		return Int{}
+		return Float32{}
 	}
 	return s.slice[i]
 }
 
 // Time return the first element with time t, return zero if not found
-func (s *IntSeq) Time(t time.Time) Int {
+func (s *Float32Seq) Time(t time.Time) Float32 {
 	got := s.MTime(t)
 	if len(got) == 0 {
-		return Int{}
+		return Float32{}
 	}
 	return got[0]
 }
 
 // MTime return all elements with time t, return nil if not found
-func (s *IntSeq) MTime(t time.Time) Ints {
+func (s *Float32Seq) MTime(t time.Time) Float32s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
 		return nil
 	}
-	ret := make(Ints, len(index))
+	ret := make(Float32s, len(index))
 	for i, v := range index {
 		ret[i] = s.slice[v]
 	}
@@ -148,22 +148,22 @@ func (s *IntSeq) MTime(t time.Time) Ints {
 }
 
 // Value return the first element with value v, return zero if not found
-func (s *IntSeq) Value(v int) Int {
+func (s *Float32Seq) Value(v float32) Float32 {
 	got := s.MValue(v)
 	if len(got) == 0 {
-		return Int{}
+		return Float32{}
 	}
 	return got[0]
 }
 
 // MValue return all elements with value v, return nil if not found
-func (s *IntSeq) MValue(v int) Ints {
+func (s *Float32Seq) MValue(v float32) Float32s {
 	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
 		return nil
 	}
-	ret := make(Ints, len(index))
+	ret := make(Float32s, len(index))
 	for i, v := range index {
 		ret[i] = s.slice[v]
 	}
@@ -171,7 +171,7 @@ func (s *IntSeq) MValue(v int) Ints {
 }
 
 // Traverse call fn for every element one by one, break if fn return true
-func (s *IntSeq) Traverse(fn func(i int, v Int) (stop bool)) {
+func (s *Float32Seq) Traverse(fn func(i int, v Float32) (stop bool)) {
 	for i, v := range s.slice {
 		if fn != nil && fn(i, v) {
 			break
@@ -180,8 +180,8 @@ func (s *IntSeq) Traverse(fn func(i int, v Int) (stop bool)) {
 }
 
 // Sum return sum of all values
-func (s *IntSeq) Sum() int {
-	var ret int
+func (s *Float32Seq) Sum() float32 {
+	var ret float32
 	for _, v := range s.slice {
 		ret += v.Value
 	}
@@ -189,8 +189,8 @@ func (s *IntSeq) Sum() int {
 }
 
 // Max return the element with max value, return zero if empty
-func (s *IntSeq) Max() Int {
-	var max Int
+func (s *Float32Seq) Max() Float32 {
+	var max Float32
 	found := false
 	for _, v := range s.slice {
 		if !found {
@@ -204,8 +204,8 @@ func (s *IntSeq) Max() Int {
 }
 
 // Min return the element with min value, return zero if empty
-func (s *IntSeq) Min() Int {
-	var min Int
+func (s *Float32Seq) Min() Float32 {
+	var min Float32
 	found := false
 	for _, v := range s.slice {
 		if !found {
@@ -219,27 +219,27 @@ func (s *IntSeq) Min() Int {
 }
 
 // First return the first element, return zero if empty
-func (s *IntSeq) First() Int {
+func (s *Float32Seq) First() Float32 {
 	if len(s.slice) == 0 {
-		return Int{}
+		return Float32{}
 	}
 	return s.slice[0]
 }
 
 // Last return the last element, return zero if empty
-func (s *IntSeq) Last() Int {
+func (s *Float32Seq) Last() Float32 {
 	if len(s.slice) == 0 {
-		return Int{}
+		return Float32{}
 	}
 	return s.slice[len(s.slice)-1]
 }
 
 // Percentile return the element matched with percentile pct, return zero if empty,
 // the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
-func (s *IntSeq) Percentile(pct float64) Int {
+func (s *Float32Seq) Percentile(pct float64) Float32 {
 	s.buildIndex()
 	if len(s.slice) == 0 {
-		return Int{}
+		return Float32{}
 	}
 	if pct > 1 {
 		pct = 1
@@ -254,14 +254,14 @@ func (s *IntSeq) Percentile(pct float64) Int {
 	return s.slice[s.valueSlice[i]]
 }
 
-// Range return a sub *IntSeq with specified interval
-func (s *IntSeq) Range(interval Interval) *IntSeq {
-	slice := Range(s.slice, interval).(Ints)
-	return newIntSeq(slice)
+// Range return a sub *Float32Seq with specified interval
+func (s *Float32Seq) Range(interval Interval) *Float32Seq {
+	slice := Range(s.slice, interval).(Float32s)
+	return newFloat32Seq(slice)
 }
 
 // Merge merge slices to inside slice according to the specified rule
-func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) error {
+func (s *Float32Seq) Merge(fn func(t time.Time, v1, v2 *float32) *float32, slices ...Float32s) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
@@ -273,16 +273,16 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 	slice1 := s.slice
 	for _, slice2 := range slices {
 		if !IsSorted(slice2) {
-			temp := make(Ints, len(slice2))
+			temp := make(Float32s, len(slice2))
 			copy(temp, slice2)
 			Sort(temp)
 			slice2 = temp
 		}
-		var got Ints
+		var got Float32s
 		for i1, i2 := 0, 0; i1 < len(slice1) || i2 < len(slice2); {
 			var (
 				t time.Time
-				v *int
+				v *float32
 			)
 			switch {
 			case i1 == len(slice1):
@@ -314,7 +314,7 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 				i2++
 			}
 			if v != nil {
-				got = append(got, Int{
+				got = append(got, Float32{
 					Time:  t,
 					Value: *v,
 				})
@@ -329,13 +329,13 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 }
 
 // Aggregate aggregate inside slice according to the specified rule
-func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.Duration, interval Interval) error {
+func (s *Float32Seq) Aggregate(fn func(t time.Time, slice Float32s) *float32, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
 
-	got := Ints{}
-	temp := Ints{}
+	got := Float32s{}
+	temp := Float32s{}
 
 	if duration <= 0 {
 		for i := 0; i < s.Len(); {
@@ -351,7 +351,7 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, Int{
+				got = append(got, Float32{
 					Time:  t,
 					Value: *v,
 				})
@@ -377,7 +377,7 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, Int{
+				got = append(got, Float32{
 					Time:  t,
 					Value: *v,
 				})
@@ -391,13 +391,13 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 }
 
 // Trim remove the elements which make fn return true
-func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
+func (s *Float32Seq) Trim(fn func(i int, v Float32) bool) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
 
 	updated := false
-	slice := make(Ints, 0)
+	slice := make(Float32s, 0)
 	for i, v := range s.slice {
 		if fn(i, v) {
 			updated = true
@@ -413,10 +413,10 @@ func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
 	return nil
 }
 
-// Clone return a new *IntSeq with copied slice inside
-func (s *IntSeq) Clone() *IntSeq {
+// Clone return a new *Float32Seq with copied slice inside
+func (s *Float32Seq) Clone() *Float32Seq {
 	if s == nil {
 		return nil
 	}
-	return newIntSeq(s.slice)
+	return newFloat32Seq(s.slice)
 }

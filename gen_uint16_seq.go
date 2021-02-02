@@ -9,81 +9,81 @@ import (
 	"time"
 )
 
-// Int is a time point with int value inside
-type Int struct {
+// Uint16 is a time point with uint16 value inside
+type Uint16 struct {
 	Time  time.Time
-	Value int
+	Value uint16
 }
 
 // IsZero return if time and value are both zero
-func (v Int) IsZero() bool {
+func (v Uint16) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
 // Equal return if time and value are both equal
-func (v Int) Equal(n Int) bool {
+func (v Uint16) Equal(n Uint16) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
 
-// Ints is a alias of Int slice
-type Ints []Int
+// Uint16s is a alias of Uint16 slice
+type Uint16s []Uint16
 
 // Len implements Interface.Len()
-func (s Ints) Len() int {
+func (s Uint16s) Len() int {
 	return len(s)
 }
 
 // Swap implements Interface.Swap()
-func (s Ints) Swap(i, j int) {
+func (s Uint16s) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
 // Time implements Interface.Time()
-func (s Ints) Time(i int) time.Time {
+func (s Uint16s) Time(i int) time.Time {
 	return s[i].Time
 }
 
 // Slice implements Interface.Slice()
-func (s Ints) Slice(i, j int) Interface {
+func (s Uint16s) Slice(i, j int) Interface {
 	return s[i:j]
 }
 
-// IntSeq is a wrapper with useful methods of Int slice
-type IntSeq struct {
-	slice Ints
+// Uint16Seq is a wrapper with useful methods of Uint16 slice
+type Uint16Seq struct {
+	slice Uint16s
 
 	indexOnce  sync.Once
 	timeIndex  map[timeKey][]int
-	valueIndex map[int][]int
+	valueIndex map[uint16][]int
 	valueSlice []int
 }
 
-// NewIntSeq return *IntSeq with copied slice inside
-func NewIntSeq(slice Ints) *IntSeq {
-	temp := make(Ints, len(slice))
+// NewUint16Seq return *Uint16Seq with copied slice inside
+func NewUint16Seq(slice Uint16s) *Uint16Seq {
+	temp := make(Uint16s, len(slice))
 	copy(temp, slice)
-	return WrapIntSeq(temp)
+	return WrapUint16Seq(temp)
 }
 
-// WrapIntSeq return *IntSeq with origin slice inside
-func WrapIntSeq(slice Ints) *IntSeq {
+// WrapUint16Seq return *Uint16Seq with origin slice inside
+func WrapUint16Seq(slice Uint16s) *Uint16Seq {
 	if !IsSorted(slice) {
 		Sort(slice)
 	}
-	return newIntSeq(slice)
+	return newUint16Seq(slice)
 }
 
-func newIntSeq(slice Ints) *IntSeq {
-	ret := &IntSeq{
+func newUint16Seq(slice Uint16s) *Uint16Seq {
+	ret := &Uint16Seq{
 		slice: slice,
 	}
 	return ret
 }
 
-func (s *IntSeq) buildIndex() {
+func (s *Uint16Seq) buildIndex() {
 	s.indexOnce.Do(func() {
 		timeIndex := make(map[timeKey][]int, len(s.slice))
-		valueIndex := make(map[int][]int, len(s.slice))
+		valueIndex := make(map[uint16][]int, len(s.slice))
 		valueSlice := s.valueSlice[:0]
 		for i, v := range s.slice {
 			k := newTimeKey(v.Time)
@@ -100,47 +100,47 @@ func (s *IntSeq) buildIndex() {
 	})
 }
 
-func (s *IntSeq) resetIndex() {
+func (s *Uint16Seq) resetIndex() {
 	s.indexOnce = sync.Once{}
 }
 
-// Ints return a replica of inside slice
-func (s *IntSeq) Ints() Ints {
-	slice := make(Ints, len(s.slice))
+// Uint16s return a replica of inside slice
+func (s *Uint16Seq) Uint16s() Uint16s {
+	slice := make(Uint16s, len(s.slice))
 	copy(slice, s.slice)
 	return slice
 }
 
 // Len return length of inside slice
-func (s *IntSeq) Len() int {
+func (s *Uint16Seq) Len() int {
 	return len(s.slice)
 }
 
 // Index return element of inside slice, return zero if index is out of range
-func (s *IntSeq) Index(i int) Int {
+func (s *Uint16Seq) Index(i int) Uint16 {
 	if i < 0 || i >= len(s.slice) {
-		return Int{}
+		return Uint16{}
 	}
 	return s.slice[i]
 }
 
 // Time return the first element with time t, return zero if not found
-func (s *IntSeq) Time(t time.Time) Int {
+func (s *Uint16Seq) Time(t time.Time) Uint16 {
 	got := s.MTime(t)
 	if len(got) == 0 {
-		return Int{}
+		return Uint16{}
 	}
 	return got[0]
 }
 
 // MTime return all elements with time t, return nil if not found
-func (s *IntSeq) MTime(t time.Time) Ints {
+func (s *Uint16Seq) MTime(t time.Time) Uint16s {
 	s.buildIndex()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
 		return nil
 	}
-	ret := make(Ints, len(index))
+	ret := make(Uint16s, len(index))
 	for i, v := range index {
 		ret[i] = s.slice[v]
 	}
@@ -148,22 +148,22 @@ func (s *IntSeq) MTime(t time.Time) Ints {
 }
 
 // Value return the first element with value v, return zero if not found
-func (s *IntSeq) Value(v int) Int {
+func (s *Uint16Seq) Value(v uint16) Uint16 {
 	got := s.MValue(v)
 	if len(got) == 0 {
-		return Int{}
+		return Uint16{}
 	}
 	return got[0]
 }
 
 // MValue return all elements with value v, return nil if not found
-func (s *IntSeq) MValue(v int) Ints {
+func (s *Uint16Seq) MValue(v uint16) Uint16s {
 	s.buildIndex()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
 		return nil
 	}
-	ret := make(Ints, len(index))
+	ret := make(Uint16s, len(index))
 	for i, v := range index {
 		ret[i] = s.slice[v]
 	}
@@ -171,7 +171,7 @@ func (s *IntSeq) MValue(v int) Ints {
 }
 
 // Traverse call fn for every element one by one, break if fn return true
-func (s *IntSeq) Traverse(fn func(i int, v Int) (stop bool)) {
+func (s *Uint16Seq) Traverse(fn func(i int, v Uint16) (stop bool)) {
 	for i, v := range s.slice {
 		if fn != nil && fn(i, v) {
 			break
@@ -180,8 +180,8 @@ func (s *IntSeq) Traverse(fn func(i int, v Int) (stop bool)) {
 }
 
 // Sum return sum of all values
-func (s *IntSeq) Sum() int {
-	var ret int
+func (s *Uint16Seq) Sum() uint16 {
+	var ret uint16
 	for _, v := range s.slice {
 		ret += v.Value
 	}
@@ -189,8 +189,8 @@ func (s *IntSeq) Sum() int {
 }
 
 // Max return the element with max value, return zero if empty
-func (s *IntSeq) Max() Int {
-	var max Int
+func (s *Uint16Seq) Max() Uint16 {
+	var max Uint16
 	found := false
 	for _, v := range s.slice {
 		if !found {
@@ -204,8 +204,8 @@ func (s *IntSeq) Max() Int {
 }
 
 // Min return the element with min value, return zero if empty
-func (s *IntSeq) Min() Int {
-	var min Int
+func (s *Uint16Seq) Min() Uint16 {
+	var min Uint16
 	found := false
 	for _, v := range s.slice {
 		if !found {
@@ -219,27 +219,27 @@ func (s *IntSeq) Min() Int {
 }
 
 // First return the first element, return zero if empty
-func (s *IntSeq) First() Int {
+func (s *Uint16Seq) First() Uint16 {
 	if len(s.slice) == 0 {
-		return Int{}
+		return Uint16{}
 	}
 	return s.slice[0]
 }
 
 // Last return the last element, return zero if empty
-func (s *IntSeq) Last() Int {
+func (s *Uint16Seq) Last() Uint16 {
 	if len(s.slice) == 0 {
-		return Int{}
+		return Uint16{}
 	}
 	return s.slice[len(s.slice)-1]
 }
 
 // Percentile return the element matched with percentile pct, return zero if empty,
 // the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
-func (s *IntSeq) Percentile(pct float64) Int {
+func (s *Uint16Seq) Percentile(pct float64) Uint16 {
 	s.buildIndex()
 	if len(s.slice) == 0 {
-		return Int{}
+		return Uint16{}
 	}
 	if pct > 1 {
 		pct = 1
@@ -254,14 +254,14 @@ func (s *IntSeq) Percentile(pct float64) Int {
 	return s.slice[s.valueSlice[i]]
 }
 
-// Range return a sub *IntSeq with specified interval
-func (s *IntSeq) Range(interval Interval) *IntSeq {
-	slice := Range(s.slice, interval).(Ints)
-	return newIntSeq(slice)
+// Range return a sub *Uint16Seq with specified interval
+func (s *Uint16Seq) Range(interval Interval) *Uint16Seq {
+	slice := Range(s.slice, interval).(Uint16s)
+	return newUint16Seq(slice)
 }
 
 // Merge merge slices to inside slice according to the specified rule
-func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) error {
+func (s *Uint16Seq) Merge(fn func(t time.Time, v1, v2 *uint16) *uint16, slices ...Uint16s) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
@@ -273,16 +273,16 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 	slice1 := s.slice
 	for _, slice2 := range slices {
 		if !IsSorted(slice2) {
-			temp := make(Ints, len(slice2))
+			temp := make(Uint16s, len(slice2))
 			copy(temp, slice2)
 			Sort(temp)
 			slice2 = temp
 		}
-		var got Ints
+		var got Uint16s
 		for i1, i2 := 0, 0; i1 < len(slice1) || i2 < len(slice2); {
 			var (
 				t time.Time
-				v *int
+				v *uint16
 			)
 			switch {
 			case i1 == len(slice1):
@@ -314,7 +314,7 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 				i2++
 			}
 			if v != nil {
-				got = append(got, Int{
+				got = append(got, Uint16{
 					Time:  t,
 					Value: *v,
 				})
@@ -329,13 +329,13 @@ func (s *IntSeq) Merge(fn func(t time.Time, v1, v2 *int) *int, slices ...Ints) e
 }
 
 // Aggregate aggregate inside slice according to the specified rule
-func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.Duration, interval Interval) error {
+func (s *Uint16Seq) Aggregate(fn func(t time.Time, slice Uint16s) *uint16, duration time.Duration, interval Interval) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
 
-	got := Ints{}
-	temp := Ints{}
+	got := Uint16s{}
+	temp := Uint16s{}
 
 	if duration <= 0 {
 		for i := 0; i < s.Len(); {
@@ -351,7 +351,7 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, Int{
+				got = append(got, Uint16{
 					Time:  t,
 					Value: *v,
 				})
@@ -377,7 +377,7 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, Int{
+				got = append(got, Uint16{
 					Time:  t,
 					Value: *v,
 				})
@@ -391,13 +391,13 @@ func (s *IntSeq) Aggregate(fn func(t time.Time, slice Ints) *int, duration time.
 }
 
 // Trim remove the elements which make fn return true
-func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
+func (s *Uint16Seq) Trim(fn func(i int, v Uint16) bool) error {
 	if fn == nil {
 		return errors.New("nil fn")
 	}
 
 	updated := false
-	slice := make(Ints, 0)
+	slice := make(Uint16s, 0)
 	for i, v := range s.slice {
 		if fn(i, v) {
 			updated = true
@@ -413,10 +413,10 @@ func (s *IntSeq) Trim(fn func(i int, v Int) bool) error {
 	return nil
 }
 
-// Clone return a new *IntSeq with copied slice inside
-func (s *IntSeq) Clone() *IntSeq {
+// Clone return a new *Uint16Seq with copied slice inside
+func (s *Uint16Seq) Clone() *Uint16Seq {
 	if s == nil {
 		return nil
 	}
-	return newIntSeq(s.slice)
+	return newUint16Seq(s.slice)
 }

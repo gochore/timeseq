@@ -10,19 +10,19 @@ import (
 	"time"
 )
 
-func RandomFloat64s(length int) Float64s {
+func RandomFloat32s(length int) Float32s {
 	now := time.Now()
-	ret := make(Float64s, length)
+	ret := make(Float32s, length)
 	for i := range ret {
 		delta := time.Duration(i) * time.Second
 		if rand.Float64() < 0.5 {
 			delta = -delta
 		}
-		value := rand.Float64()
+		value := rand.Float32()
 		for value == 0 || value == 1 || value == 2 { // reserved values
-			value = rand.Float64()
+			value = rand.Float32()
 		}
-		ret[i] = Float64{
+		ret[i] = Float32{
 			Time:  now.Add(delta),
 			Value: value,
 		}
@@ -30,10 +30,10 @@ func RandomFloat64s(length int) Float64s {
 	return ret
 }
 
-func TestFloat64_IsZero(t *testing.T) {
+func TestFloat32_IsZero(t *testing.T) {
 	type fields struct {
 		Time  time.Time
-		Value float64
+		Value float32
 	}
 	tests := []struct {
 		name   string
@@ -56,7 +56,7 @@ func TestFloat64_IsZero(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Float64{
+			v := Float32{
 				Time:  tt.fields.Time,
 				Value: tt.fields.Value,
 			}
@@ -67,13 +67,13 @@ func TestFloat64_IsZero(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Float64s(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Float32s(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 
 	tests := []struct {
 		name string
-		want Float64s
+		want Float32s
 	}{
 		{
 			name: "regular",
@@ -82,16 +82,16 @@ func TestFloat64Seq_Float64s(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
-			if got := s.Float64s(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Float64s() = %v, want %v", got, tt.want)
+			s := NewFloat32Seq(data)
+			if got := s.Float32s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Float32s() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestFloat64Seq_Index(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Index(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 
 	type args struct {
@@ -100,7 +100,7 @@ func TestFloat64Seq_Index(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want Float64
+		want Float32
 	}{
 		{
 			name: "regular",
@@ -114,12 +114,12 @@ func TestFloat64Seq_Index(t *testing.T) {
 			args: args{
 				i: -1,
 			},
-			want: Float64{},
+			want: Float32{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Index(tt.args.i); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Index() = %v, want %v", got, tt.want)
 			}
@@ -127,13 +127,13 @@ func TestFloat64Seq_Index(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Time(t *testing.T) {
+func TestFloat32Seq_Time(t *testing.T) {
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
 	lastMonth := now.AddDate(0, -1, 0)
 	lastYear := now.AddDate(-1, 0, 0)
 
-	data := RandomFloat64s(100)
+	data := RandomFloat32s(100)
 	data[0].Time = lastMonth
 	data[1].Time = lastMonth
 	data[2].Time = lastMonth
@@ -146,7 +146,7 @@ func TestFloat64Seq_Time(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want Float64
+		want Float32
 	}{
 		{
 			name: "regular",
@@ -167,12 +167,12 @@ func TestFloat64Seq_Time(t *testing.T) {
 			args: args{
 				t: lastYear,
 			},
-			want: Float64{},
+			want: Float32{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Time(tt.args.t); !got.Equal(tt.want) {
 				t.Errorf("Time() = %v, want %v", got, tt.want)
 			}
@@ -180,13 +180,13 @@ func TestFloat64Seq_Time(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_MTime(t *testing.T) {
+func TestFloat32Seq_MTime(t *testing.T) {
 	now := time.Now()
 	yesterday := now.AddDate(0, 0, -1)
 	lastMonth := now.AddDate(0, -1, 0)
 	lastYear := now.AddDate(-1, 0, 0)
 
-	data := RandomFloat64s(100)
+	data := RandomFloat32s(100)
 	data[0].Time = lastMonth
 	data[1].Time = lastMonth
 	data[2].Time = lastMonth
@@ -225,7 +225,7 @@ func TestFloat64Seq_MTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.MTime(tt.args.t); len(got) != tt.length {
 				t.Errorf("MTime() = %v, want %v", got, tt.length)
 			}
@@ -233,8 +233,8 @@ func TestFloat64Seq_MTime(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Value(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Value(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 
 	data[0].Value = 0
@@ -243,12 +243,12 @@ func TestFloat64Seq_Value(t *testing.T) {
 	data[3].Value = 1
 
 	type args struct {
-		v float64
+		v float32
 	}
 	tests := []struct {
 		name string
 		args args
-		want Float64
+		want Float32
 	}{
 		{
 			name: "regular",
@@ -269,12 +269,12 @@ func TestFloat64Seq_Value(t *testing.T) {
 			args: args{
 				v: 2,
 			},
-			want: Float64{},
+			want: Float32{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Value(tt.args.v); !got.Equal(tt.want) {
 				t.Errorf("Value() = %v, want %v", got, tt.want)
 			}
@@ -282,8 +282,8 @@ func TestFloat64Seq_Value(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_MValue(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_MValue(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 
 	data[0].Value = 0
@@ -292,7 +292,7 @@ func TestFloat64Seq_MValue(t *testing.T) {
 	data[3].Value = 1
 
 	type args struct {
-		v float64
+		v float32
 	}
 	tests := []struct {
 		name   string
@@ -323,7 +323,7 @@ func TestFloat64Seq_MValue(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.MValue(tt.args.v); len(got) != tt.length {
 				t.Errorf("MValue() = %v, want %v", got, tt.length)
 			}
@@ -331,11 +331,11 @@ func TestFloat64Seq_MValue(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Traverse(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Traverse(t *testing.T) {
+	data := RandomFloat32s(100)
 
 	type args struct {
-		fn func(i int, v Float64) (stop bool)
+		fn func(i int, v Float32) (stop bool)
 	}
 	tests := []struct {
 		name string
@@ -344,7 +344,7 @@ func TestFloat64Seq_Traverse(t *testing.T) {
 		{
 			name: "regular",
 			args: args{
-				fn: func(i int, v Float64) (stop bool) {
+				fn: func(i int, v Float32) (stop bool) {
 					return false
 				},
 			},
@@ -352,7 +352,7 @@ func TestFloat64Seq_Traverse(t *testing.T) {
 		{
 			name: "stop",
 			args: args{
-				fn: func(i int, v Float64) (stop bool) {
+				fn: func(i int, v Float32) (stop bool) {
 					return i > 10
 				},
 			},
@@ -360,22 +360,22 @@ func TestFloat64Seq_Traverse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			s.Traverse(tt.args.fn)
 		})
 	}
 }
 
-func TestFloat64Seq_Sum(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Sum(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
-	var sum float64
+	var sum float32
 	for _, v := range data {
 		sum += v.Value
 	}
 	tests := []struct {
 		name string
-		want float64
+		want float32
 	}{
 		{
 			name: "regular",
@@ -384,7 +384,7 @@ func TestFloat64Seq_Sum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Sum(); got != tt.want {
 				t.Errorf("Sum() = %v, want %v", got, tt.want)
 			}
@@ -392,8 +392,8 @@ func TestFloat64Seq_Sum(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Max(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Max(t *testing.T) {
+	data := RandomFloat32s(100)
 	max := data[0]
 	for _, v := range data {
 		if v.Value > max.Value {
@@ -403,7 +403,7 @@ func TestFloat64Seq_Max(t *testing.T) {
 
 	tests := []struct {
 		name string
-		want Float64
+		want Float32
 	}{
 		{
 			name: "regular",
@@ -412,7 +412,7 @@ func TestFloat64Seq_Max(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Max(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Max() = %v, want %v", got, tt.want)
 			}
@@ -420,8 +420,8 @@ func TestFloat64Seq_Max(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Min(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Min(t *testing.T) {
+	data := RandomFloat32s(100)
 	min := data[0]
 	for _, v := range data {
 		if v.Value < min.Value {
@@ -431,7 +431,7 @@ func TestFloat64Seq_Min(t *testing.T) {
 
 	tests := []struct {
 		name string
-		want Float64
+		want Float32
 	}{
 		{
 			name: "regular",
@@ -440,7 +440,7 @@ func TestFloat64Seq_Min(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Min(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Min() = %v, want %v", got, tt.want)
 			}
@@ -448,14 +448,14 @@ func TestFloat64Seq_Min(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_First(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_First(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 
 	tests := []struct {
 		name string
-		data Float64s
-		want Float64
+		data Float32s
+		want Float32
 	}{
 		{
 
@@ -466,12 +466,12 @@ func TestFloat64Seq_First(t *testing.T) {
 		{
 			name: "emtpy",
 			data: nil,
-			want: Float64{},
+			want: Float32{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(tt.data)
+			s := NewFloat32Seq(tt.data)
 			if got := s.First(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("First() = %v, want %v", got, tt.want)
 			}
@@ -479,13 +479,13 @@ func TestFloat64Seq_First(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Last(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Last(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 	tests := []struct {
 		name string
-		data Float64s
-		want Float64
+		data Float32s
+		want Float32
 	}{
 		{
 
@@ -496,12 +496,12 @@ func TestFloat64Seq_Last(t *testing.T) {
 		{
 			name: "emtpy",
 			data: nil,
-			want: Float64{},
+			want: Float32{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(tt.data)
+			s := NewFloat32Seq(tt.data)
 			if got := s.Last(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Last() = %v, want %v", got, tt.want)
 			}
@@ -509,11 +509,11 @@ func TestFloat64Seq_Last(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Percentile(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Percentile(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 	for i := range data {
-		data[i].Value = float64(i)
+		data[i].Value = float32(i)
 	}
 
 	type args struct {
@@ -521,9 +521,9 @@ func TestFloat64Seq_Percentile(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		data Float64s
+		data Float32s
 		args args
-		want Float64
+		want Float32
 	}{
 		{
 			name: "data[0]",
@@ -587,12 +587,12 @@ func TestFloat64Seq_Percentile(t *testing.T) {
 			args: args{
 				pct: 1,
 			},
-			want: Float64{},
+			want: Float32{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(tt.data)
+			s := NewFloat32Seq(tt.data)
 			if got := s.Percentile(tt.args.pct); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Percentile() = %v, want %v", got, tt.want)
 			}
@@ -600,8 +600,8 @@ func TestFloat64Seq_Percentile(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Range(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Range(t *testing.T) {
+	data := RandomFloat32s(100)
 	Sort(data)
 
 	type args struct {
@@ -609,9 +609,9 @@ func TestFloat64Seq_Range(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		data Float64s
+		data Float32s
 		args args
-		want Float64s
+		want Float32s
 	}{
 		{
 			name: "regular",
@@ -640,7 +640,7 @@ func TestFloat64Seq_Range(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if got := s.Range(tt.args.interval).slice; !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
 			}
@@ -648,32 +648,32 @@ func TestFloat64Seq_Range(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Merge(t *testing.T) {
-	data := RandomFloat64s(10)
+func TestFloat32Seq_Merge(t *testing.T) {
+	data := RandomFloat32s(10)
 	Sort(data)
 
 	type args struct {
-		fn     func(t time.Time, v1, v2 *float64) *float64
-		slices []Float64s
+		fn     func(t time.Time, v1, v2 *float32) *float32
+		slices []Float32s
 	}
 	tests := []struct {
 		name    string
-		data    Float64s
+		data    Float32s
 		args    args
-		want    Float64s
+		want    Float32s
 		wantErr bool
 	}{
 		{
 			name: "regular",
 			data: data[0:7],
 			args: args{
-				fn: func(t time.Time, v1, v2 *float64) *float64 {
+				fn: func(t time.Time, v1, v2 *float32) *float32 {
 					if v1 != nil {
 						return v1
 					}
 					return v2
 				},
-				slices: []Float64s{data[3:10]},
+				slices: []Float32s{data[3:10]},
 			},
 			want: data,
 		},
@@ -681,13 +681,13 @@ func TestFloat64Seq_Merge(t *testing.T) {
 			name: "reverse",
 			data: data[3:10],
 			args: args{
-				fn: func(t time.Time, v1, v2 *float64) *float64 {
+				fn: func(t time.Time, v1, v2 *float32) *float32 {
 					if v1 != nil {
 						return v1
 					}
 					return v2
 				},
-				slices: []Float64s{data[0:7]},
+				slices: []Float32s{data[0:7]},
 			},
 			want: data,
 		},
@@ -703,13 +703,13 @@ func TestFloat64Seq_Merge(t *testing.T) {
 			name: "multiple",
 			data: nil,
 			args: args{
-				fn: func(t time.Time, v1, v2 *float64) *float64 {
+				fn: func(t time.Time, v1, v2 *float32) *float32 {
 					if v1 != nil {
 						return v1
 					}
 					return v2
 				},
-				slices: []Float64s{
+				slices: []Float32s{
 					data[1:2],
 					data[0:4],
 					nil,
@@ -723,14 +723,14 @@ func TestFloat64Seq_Merge(t *testing.T) {
 			name: "not sorted",
 			data: data[0:7],
 			args: args{
-				fn: func(t time.Time, v1, v2 *float64) *float64 {
+				fn: func(t time.Time, v1, v2 *float32) *float32 {
 					if v1 != nil {
 						return v1
 					}
 					return v2
 				},
-				slices: []Float64s{
-					append(Float64s{data[9]}, data[3:9]...),
+				slices: []Float32s{
+					append(Float32s{data[9]}, data[3:9]...),
 				},
 			},
 			want: data,
@@ -739,20 +739,20 @@ func TestFloat64Seq_Merge(t *testing.T) {
 			name: "empty slices",
 			data: data[0:7],
 			args: args{
-				fn: func(t time.Time, v1, v2 *float64) *float64 {
+				fn: func(t time.Time, v1, v2 *float32) *float32 {
 					if v1 != nil {
 						return v1
 					}
 					return v2
 				},
-				slices: []Float64s{},
+				slices: []Float32s{},
 			},
 			want: data[0:7],
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(tt.data)
+			s := NewFloat32Seq(tt.data)
 			if err := s.Merge(tt.args.fn, tt.args.slices...); (err != nil) != tt.wantErr {
 				t.Errorf("Merge() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -766,14 +766,14 @@ func TestFloat64Seq_Merge(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Aggregate(t *testing.T) {
-	data := RandomFloat64s(100)
+func TestFloat32Seq_Aggregate(t *testing.T) {
+	data := RandomFloat32s(100)
 	now := time.Now()
 	begin := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	end := begin.Add(24*time.Hour - 1)
 
 	type args struct {
-		fn       func(t time.Time, slice Float64s) *float64
+		fn       func(t time.Time, slice Float32s) *float32
 		duration time.Duration
 		interval Interval
 	}
@@ -785,8 +785,8 @@ func TestFloat64Seq_Aggregate(t *testing.T) {
 		{
 			name: "regular",
 			args: args{
-				fn: func(t time.Time, slice Float64s) *float64 {
-					ret := float64(t.Hour())
+				fn: func(t time.Time, slice Float32s) *float32 {
+					ret := float32(t.Hour())
 					if len(slice) != 0 {
 						ret = 0
 					}
@@ -812,8 +812,8 @@ func TestFloat64Seq_Aggregate(t *testing.T) {
 		{
 			name: "zero duration",
 			args: args{
-				fn: func(t time.Time, slice Float64s) *float64 {
-					ret := float64(t.Hour())
+				fn: func(t time.Time, slice Float32s) *float32 {
+					ret := float32(t.Hour())
 					if len(slice) != 0 {
 						ret = 0
 					}
@@ -830,7 +830,7 @@ func TestFloat64Seq_Aggregate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if err := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval); (err != nil) != tt.wantErr {
 				t.Errorf("Aggregate() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -844,23 +844,23 @@ func TestFloat64Seq_Aggregate(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Trim(t *testing.T) {
-	data := RandomFloat64s(10)
+func TestFloat32Seq_Trim(t *testing.T) {
+	data := RandomFloat32s(10)
 	Sort(data)
 
 	type args struct {
-		fn func(i int, v Float64) bool
+		fn func(i int, v Float32) bool
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    Float64s
+		want    Float32s
 		wantErr bool
 	}{
 		{
 			name: "regular",
 			args: args{
-				fn: func(i int, v Float64) bool {
+				fn: func(i int, v Float32) bool {
 					return i >= 5
 				},
 			},
@@ -878,7 +878,7 @@ func TestFloat64Seq_Trim(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewFloat64Seq(data)
+			s := NewFloat32Seq(data)
 			if err := s.Trim(tt.args.fn); (err != nil) != tt.wantErr {
 				t.Errorf("Trim() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -898,18 +898,18 @@ func TestFloat64Seq_Trim(t *testing.T) {
 	}
 }
 
-func TestFloat64Seq_Clone(t *testing.T) {
-	data := RandomFloat64s(10)
+func TestFloat32Seq_Clone(t *testing.T) {
+	data := RandomFloat32s(10)
 	Sort(data)
 	tests := []struct {
 		name string
-		seq  *Float64Seq
-		want *Float64Seq
+		seq  *Float32Seq
+		want *Float32Seq
 	}{
 		{
 			name: "regular",
-			seq:  NewFloat64Seq(data),
-			want: &Float64Seq{
+			seq:  NewFloat32Seq(data),
+			want: &Float32Seq{
 				slice: data,
 			},
 		},

@@ -20,7 +20,7 @@ func (v Uint64) IsZero() bool {
 	return v.Value == 0 && v.Time.IsZero()
 }
 
-// IsZero return if time and value are both equal
+// Equal return if time and value are both equal
 func (v Uint64) Equal(n Uint64) bool {
 	return v.Value == n.Value && v.Time.Equal(n.Time)
 }
@@ -188,11 +188,6 @@ func (s *Uint64Seq) Sum() uint64 {
 	return ret
 }
 
-// Count return count of elements, same as Len
-func (s *Uint64Seq) Count() int {
-	return s.Len()
-}
-
 // Max return the element with max value, return zero if empty
 func (s *Uint64Seq) Max() Uint64 {
 	var max Uint64
@@ -208,7 +203,7 @@ func (s *Uint64Seq) Max() Uint64 {
 	return max
 }
 
-// Max return the element with min value, return zero if empty
+// Min return the element with min value, return zero if empty
 func (s *Uint64Seq) Min() Uint64 {
 	var min Uint64
 	found := false
