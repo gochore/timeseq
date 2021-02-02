@@ -1,10 +1,13 @@
+// Deprecated: migrate to github.com/gochore/timeseq/v2
+//
+// timeseq v1 is frozen, you should use v2
 package timeseq
 
 import (
 	"time"
 )
 
-// Sequence can be implemented for specific data type
+// Deprecated: migrate to github.com/gochore/timeseq/v2
 type Sequence interface {
 	// return length
 	Len() int

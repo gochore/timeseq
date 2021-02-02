@@ -1,3 +1,6 @@
+// Deprecated: migrate to github.com/gochore/timeseq/v2
+//
+// timeseq v1 is frozen, you should use v2
 package timeseq
 
 import (
@@ -5,7 +8,7 @@ import (
 	"time"
 )
 
-// Sort will sort sequence by time
+// Deprecated: migrate to github.com/gochore/timeseq/v2
 func Sort(seq Sequence) {
 	if seq == nil {
 		return
@@ -13,7 +16,7 @@ func Sort(seq Sequence) {
 	sort.Sort(sortableSequence{seq})
 }
 
-// Range return sub sequence
+// Deprecated: migrate to github.com/gochore/timeseq/v2
 func Range(seq Sequence, afterOrEqual, beforeOrEqual *time.Time) Sequence {
 	i := 0
 	if afterOrEqual != nil {
@@ -33,7 +36,7 @@ func Range(seq Sequence, afterOrEqual, beforeOrEqual *time.Time) Sequence {
 	return seq.Slice(i, j)
 }
 
-// First return the index of the first item
+// Deprecated: migrate to github.com/gochore/timeseq/v2
 func First(seq Sequence, afterOrEqual *time.Time) int {
 	i := 0
 	if afterOrEqual != nil {
@@ -47,7 +50,7 @@ func First(seq Sequence, afterOrEqual *time.Time) int {
 	return i
 }
 
-// Last return the index of the last item
+// Deprecated: migrate to github.com/gochore/timeseq/v2
 func Last(seq Sequence, beforeOrEqual *time.Time) int {
 	j := seq.Len() - 1
 	if beforeOrEqual != nil {
