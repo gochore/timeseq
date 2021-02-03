@@ -2,9 +2,23 @@ package timeseq
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 	"time"
 )
+
+func parseTime(s string) time.Time {
+	ret, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		panic(err)
+	}
+	return ret
+}
+
+func parseTimeP(s string) *time.Time {
+	ret := parseTime(s)
+	return &ret
+}
 
 func TestInterval_Contain(t *testing.T) {
 	now := time.Now()
@@ -215,6 +229,124 @@ func TestInterval_Format(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tt.interval.Format(tt.args.layout); got != tt.want {
 				t.Errorf("Format() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInterval_Truncate(t *testing.T) {
+	type fields struct {
+		NotBefore *time.Time
+		NotAfter  *time.Time
+	}
+	type args struct {
+		d time.Duration
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Interval
+	}{
+		{
+			name: "regular",
+			fields: fields{
+				NotBefore: parseTimeP("2021-02-02T20:34:10+08:00"),
+				NotAfter:  parseTimeP("2021-02-02T21:34:10+08:00"),
+			},
+			args: args{
+				d: time.Minute,
+			},
+			want: Interval{
+				NotBefore: parseTimeP("2021-02-02T20:35:00+08:00"),
+				NotAfter:  parseTimeP("2021-02-02T21:34:00+08:00"),
+			},
+		},
+		{
+			name: "unchanged",
+			fields: fields{
+				NotBefore: parseTimeP("2021-02-02T20:35:00+08:00"),
+				NotAfter:  parseTimeP("2021-02-02T21:34:00+08:00"),
+			},
+			args: args{
+				d: time.Minute,
+			},
+			want: Interval{
+				NotBefore: parseTimeP("2021-02-02T20:35:00+08:00"),
+				NotAfter:  parseTimeP("2021-02-02T21:34:00+08:00"),
+			},
+		},
+		{
+			name: "nil",
+			fields: fields{
+				NotBefore: nil,
+				NotAfter:  nil,
+			},
+			args: args{
+				d: time.Minute,
+			},
+			want: Interval{
+				NotBefore: nil,
+				NotAfter:  nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := Interval{
+				NotBefore: tt.fields.NotBefore,
+				NotAfter:  tt.fields.NotAfter,
+			}
+			if got := i.Truncate(tt.args.d); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Truncate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInterval_Duration(t *testing.T) {
+	type fields struct {
+		NotBefore *time.Time
+		NotAfter  *time.Time
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   time.Duration
+	}{
+		{
+			name: "regular",
+			fields: fields{
+				NotBefore: parseTimeP("2021-02-02T20:35:00+08:00"),
+				NotAfter:  parseTimeP("2021-02-02T20:36:00+08:00"),
+			},
+			want: time.Minute,
+		},
+		{
+			name: "nil",
+			fields: fields{
+				NotBefore: nil,
+				NotAfter:  parseTimeP("2021-02-02T20:36:00+08:00"),
+			},
+			want: -1,
+		},
+		{
+			name: "zero",
+			fields: fields{
+				NotBefore: parseTimeP("2021-02-02T20:36:00+08:00"),
+				NotAfter:  parseTimeP("2021-02-02T20:36:00+08:00"),
+			},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := Interval{
+				NotBefore: tt.fields.NotBefore,
+				NotAfter:  tt.fields.NotAfter,
+			}
+			if got := i.Duration(); got != tt.want {
+				t.Errorf("Duration() = %v, want %v", got, tt.want)
 			}
 		})
 	}
