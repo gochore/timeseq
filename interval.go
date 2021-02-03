@@ -8,7 +8,7 @@ type Interval struct {
 	NotAfter  *time.Time
 }
 
-// Contain return if time t is in the interval
+// Contain returns if time t is in the interval
 func (i Interval) Contain(t time.Time) bool {
 	if i.NotAfter != nil && t.After(*i.NotAfter) {
 		return false
@@ -46,7 +46,7 @@ func (i Interval) EndAt(t time.Time) Interval {
 	return i.BeforeOrEqual(t)
 }
 
-// BeforeOrEqual return a new Interval which not before t
+// BeforeOrEqual returns a new Interval which not before t
 func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: i.NotBefore,
@@ -54,7 +54,7 @@ func (i Interval) BeforeOrEqual(t time.Time) Interval {
 	}
 }
 
-// AfterOrEqual return a new Interval which not after t
+// AfterOrEqual returns a new Interval which not after t
 func (i Interval) AfterOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: &t,
@@ -62,7 +62,7 @@ func (i Interval) AfterOrEqual(t time.Time) Interval {
 	}
 }
 
-// Before return a new Interval which before t
+// Before returns a new Interval which before t
 func (i Interval) Before(t time.Time) Interval {
 	t = t.Add(-1)
 	return Interval{
@@ -71,13 +71,42 @@ func (i Interval) Before(t time.Time) Interval {
 	}
 }
 
-// After return a new Interval which after t
+// After returns a new Interval which after t
 func (i Interval) After(t time.Time) Interval {
 	t = t.Add(1)
 	return Interval{
 		NotBefore: &t,
 		NotAfter:  i.NotAfter,
 	}
+}
+
+// Truncate returns the result of rounding interval down to a multiple of d (since the zero time).
+func (i Interval) Truncate(d time.Duration) Interval {
+	if i.NotBefore != nil {
+		t := (*i.NotBefore).Truncate(d)
+		if t.Before(*i.NotBefore) {
+			t = t.Add(d)
+		}
+		i.NotBefore = &t
+	}
+	if i.NotAfter != nil {
+		t := (*i.NotAfter).Truncate(d)
+		i.NotAfter = &t
+	}
+	return i
+}
+
+// Duration returns the duration NotAfter - NotBefore,
+// returns 0 if NotAfter is before or equal NotBefore,
+// returns -1 if NotAfter or NotBefore if nil.
+func (i Interval) Duration() time.Duration {
+	if i.NotBefore == nil || i.NotAfter == nil {
+		return -1
+	}
+	if !(*i.NotAfter).After(*i.NotBefore) {
+		return 0
+	}
+	return (*i.NotAfter).Sub(*i.NotBefore)
 }
 
 // BeginAt is alias of AfterOrEqual
@@ -90,21 +119,21 @@ func EndAt(t time.Time) Interval {
 	return BeforeOrEqual(t)
 }
 
-// BeforeOrEqual return a new Interval which not before t
+// BeforeOrEqual returns a new Interval which not before t
 func BeforeOrEqual(t time.Time) Interval {
 	return Interval{
 		NotAfter: &t,
 	}
 }
 
-// AfterOrEqual return a new Interval which not after t
+// AfterOrEqual returns a new Interval which not after t
 func AfterOrEqual(t time.Time) Interval {
 	return Interval{
 		NotBefore: &t,
 	}
 }
 
-// Before return a new Interval which before t
+// Before returns a new Interval which before t
 func Before(t time.Time) Interval {
 	t = t.Add(-1)
 	return Interval{
@@ -112,7 +141,7 @@ func Before(t time.Time) Interval {
 	}
 }
 
-// After return a new Interval which after t
+// After returns a new Interval which after t
 func After(t time.Time) Interval {
 	t = t.Add(1)
 	return Interval{
