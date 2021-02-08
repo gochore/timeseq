@@ -260,7 +260,7 @@ func (s *Int64Seq) Range(interval Interval) *Int64Seq {
 	return newInt64Seq(slice)
 }
 
-// Range return a new *Int64Seq without elements which make fn return true
+// Range return a *Int64Seq without elements which make fn return true
 func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
 	if fn == nil || len(s.slice) == 0 {
 		return s
@@ -355,13 +355,13 @@ func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, slices ...I
 	return nil
 }
 
-// Aggregate aggregate inside slice according to the specified rule
-func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration time.Duration, interval Interval) error {
+// Aggregate return a aggregated *Int64Seq according to the specified rule
+func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration time.Duration, interval Interval) *Int64Seq {
 	if fn == nil {
-		return errors.New("nil fn")
+		return s
 	}
 
-	got := Int64s{}
+	slice := Int64s{}
 	temp := Int64s{}
 
 	if duration <= 0 {
@@ -378,7 +378,7 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, Int64{
+				slice = append(slice, Int64{
 					Time:  t,
 					Value: *v,
 				})
@@ -395,16 +395,21 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 				begin = begin.Add(duration)
 			}
 		}
-		for t, i := begin, 0; i < s.Len() && interval.Contain(t); t = t.Add(duration) {
+		for t, i := begin, 0; interval.Contain(t); t = t.Add(duration) {
 			temp = temp[:0]
 			itv := BeginAt(t).EndAt(t.Add(duration))
-			for i < s.slice.Len() && itv.Contain(s.slice[i].Time) {
-				temp = append(temp, s.slice[i])
+			for i < len(s.slice) {
+				if s.slice[i].Time.After(*itv.NotAfter) {
+					break
+				}
+				if itv.Contain(s.slice[i].Time) {
+					temp = append(temp, s.slice[i])
+				}
 				i++
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, Int64{
+				slice = append(slice, Int64{
 					Time:  t,
 					Value: *v,
 				})
@@ -412,15 +417,5 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 		}
 	}
 
-	s.slice = got
-	s.resetIndex()
-	return nil
-}
-
-// Clone return a new *Int64Seq with copied slice inside
-func (s *Int64Seq) Clone() *Int64Seq {
-	if s == nil {
-		return nil
-	}
-	return newInt64Seq(s.slice)
+	return newInt64Seq(slice)
 }

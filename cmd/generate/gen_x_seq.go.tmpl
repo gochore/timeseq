@@ -353,13 +353,13 @@ func (s *{{.Name}}Seq) Merge(fn func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}},
 	return nil
 }
 
-// Aggregate aggregate inside slice according to the specified rule
-func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type}}, duration time.Duration, interval Interval) error {
+// Aggregate return a aggregated *{{.Name}}Seq according to the specified rule
+func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *int64, duration time.Duration, interval Interval) *{{.Name}}Seq {
 	if fn == nil {
-		return errors.New("nil fn")
+		return s
 	}
 
-	got := {{.Name}}s{}
+	slice := {{.Name}}s{}
 	temp := {{.Name}}s{}
 
 	if duration <= 0 {
@@ -376,7 +376,7 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, {{.Name}}{
+				slice = append(slice, {{.Name}}{
 					Time:  t,
 					Value: *v,
 				})
@@ -393,16 +393,21 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 				begin = begin.Add(duration)
 			}
 		}
-		for t, i := begin, 0; i < s.Len() && interval.Contain(t); t = t.Add(duration) {
+		for t, i := begin, 0; interval.Contain(t); t = t.Add(duration) {
 			temp = temp[:0]
 			itv := BeginAt(t).EndAt(t.Add(duration))
-			for i < s.slice.Len() && itv.Contain(s.slice[i].Time) {
-				temp = append(temp, s.slice[i])
+			for i < len(s.slice) {
+				if s.slice[i].Time.After(*itv.NotAfter) {
+					break
+				}
+				if itv.Contain(s.slice[i].Time) {
+					temp = append(temp, s.slice[i])
+				}
 				i++
 			}
 			v := fn(t, temp)
 			if v != nil {
-				got = append(got, {{.Name}}{
+				slice = append(slice, {{.Name}}{
 					Time:  t,
 					Value: *v,
 				})
@@ -410,7 +415,5 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 		}
 	}
 
-	s.slice = got
-	s.resetIndex()
-	return nil
+	return new{{.Name}}Seq(slice)
 }

@@ -767,133 +767,178 @@ func TestInt64Seq_Merge(t *testing.T) {
 }
 
 func TestInt64Seq_Aggregate(t *testing.T) {
-	data := RandomInt64s(100)
-	now := time.Now()
-	begin := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	end := begin.Add(24*time.Hour - 1)
-
 	type args struct {
 		fn       func(t time.Time, slice Int64s) *int64
 		duration time.Duration
 		interval Interval
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name  string
+		slice Int64s
+		args  args
+		want  Int64s
 	}{
 		{
 			name: "regular",
+			slice: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:19:01+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 			args: args{
 				fn: func(t time.Time, slice Int64s) *int64 {
-					ret := int64(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
+					var ret int64
 					for _, v := range slice {
 						ret += v.Value
 					}
 					return &ret
 				},
 				duration: time.Hour,
-				interval: BeginAt(begin).EndAt(end),
+				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
-			wantErr: false,
+			want: Int64s{
+				{Time: parseTime("2021-02-08T17:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T18:00:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
+				{Time: parseTime("2021-02-08T20:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T21:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
+			},
 		},
 		{
 			name: "nil fn",
+			slice: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:19:01+08:00"), Value: 3},
+			},
 			args: args{
 				fn:       nil,
 				duration: time.Hour,
-				interval: BeginAt(begin).EndAt(end),
+				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
-			wantErr: true,
+			want: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:19:01+08:00"), Value: 3},
+			},
 		},
 		{
 			name: "zero duration",
+			slice: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 			args: args{
 				fn: func(t time.Time, slice Int64s) *int64 {
-					ret := int64(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
+					var ret int64
 					for _, v := range slice {
 						ret += v.Value
 					}
 					return &ret
 				},
 				duration: 0,
-				interval: BeginAt(begin).EndAt(end),
+				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
-			wantErr: false,
+			want: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 		},
 		{
 			name: "shorter interval with zero duraion",
+			slice: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 			args: args{
 				fn: func(t time.Time, slice Int64s) *int64 {
-					ret := int64(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
+					var ret int64
 					for _, v := range slice {
 						ret += v.Value
 					}
 					return &ret
 				},
 				duration: 0,
-				interval: BeginAt(now).EndAt(end),
+				interval: BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
-			wantErr: false,
+			want: Int64s{
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 		},
 		{
 			name: "shorter interval with non zero duraion",
+			slice: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 			args: args{
 				fn: func(t time.Time, slice Int64s) *int64 {
-					ret := int64(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
+					var ret int64
 					for _, v := range slice {
 						ret += v.Value
 					}
 					return &ret
 				},
-				duration: time.Minute,
-				interval: BeginAt(now).EndAt(end),
+				duration: time.Hour,
+				interval: BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
-			wantErr: false,
+			want: Int64s{
+				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
+				{Time: parseTime("2021-02-08T20:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T21:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
+			},
 		},
 		{
 			name: "miss begin",
+			slice: Int64s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
 			args: args{
 				fn: func(t time.Time, slice Int64s) *int64 {
-					ret := int64(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
+					var ret int64
 					for _, v := range slice {
 						ret += v.Value
 					}
 					return &ret
 				},
-				duration: time.Minute,
-				interval: EndAt(end),
+				duration: time.Hour,
+				interval: EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
-			wantErr: false,
+			want: Int64s{
+				{Time: parseTime("2021-02-08T18:00:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
+				{Time: parseTime("2021-02-08T20:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T21:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewInt64Seq(data)
-			if err := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval); (err != nil) != tt.wantErr {
-				t.Errorf("Aggregate() error = %v, wantErr %v", err, tt.wantErr)
+			s := NewInt64Seq(tt.slice)
+			if got := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval).Int64s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Aggregate() got = %v, want %v", len(got), len(tt.want))
+				for i, v := range got {
+					t.Errorf("got  %v %v", i, v)
+				}
+				for i, v := range tt.want {
+					t.Errorf("want %v %v", i, v)
+				}
 				return
 			}
-			if !tt.wantErr {
-				for i, v := range s.slice {
-					fmt.Println(i, v.Value, v.Time)
-				}
-			}
+
 		})
 	}
 }
@@ -938,36 +983,6 @@ func TestInt64Seq_Trim(t *testing.T) {
 				for i, v := range tt.want {
 					fmt.Println(i, v)
 				}
-			}
-		})
-	}
-}
-
-func TestInt64Seq_Clone(t *testing.T) {
-	data := RandomInt64s(10)
-	Sort(data)
-	tests := []struct {
-		name string
-		seq  *Int64Seq
-		want *Int64Seq
-	}{
-		{
-			name: "regular",
-			seq:  NewInt64Seq(data),
-			want: &Int64Seq{
-				slice: data,
-			},
-		},
-		{
-			name: "nil",
-			seq:  nil,
-			want: nil,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.seq.Clone(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Clone() = %v, want %v", got, tt.want)
 			}
 		})
 	}
