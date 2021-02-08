@@ -260,6 +260,33 @@ func (s *Int64Seq) Range(interval Interval) *Int64Seq {
 	return newInt64Seq(slice)
 }
 
+// Range return a new *Int64Seq without elements which make fn return true
+func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
+	if fn == nil || len(s.slice) == 0 {
+		return s
+	}
+
+	removeM := map[int]struct{}{}
+	for i, v := range s.slice {
+		if fn(i, v) {
+			removeM[i] = struct{}{}
+		}
+	}
+	if len(removeM) == 0 {
+		return s
+	}
+
+	slice := make(Int64s, 0, len(s.slice)-len(removeM))
+	for i, v := range s.slice {
+		if _, ok := removeM[i]; ok {
+			continue
+		}
+		slice = append(slice, v)
+	}
+
+	return newInt64Seq(slice)
+}
+
 // Merge merge slices to inside slice according to the specified rule
 func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, slices ...Int64s) error {
 	if fn == nil {
@@ -387,29 +414,6 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 
 	s.slice = got
 	s.resetIndex()
-	return nil
-}
-
-// Trim remove the elements which make fn return true
-func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) error {
-	if fn == nil {
-		return errors.New("nil fn")
-	}
-
-	updated := false
-	slice := make(Int64s, 0)
-	for i, v := range s.slice {
-		if fn(i, v) {
-			updated = true
-		} else {
-			slice = append(slice, v)
-		}
-	}
-
-	if updated {
-		s.slice = slice
-		s.resetIndex()
-	}
 	return nil
 }
 

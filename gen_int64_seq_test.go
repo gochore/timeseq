@@ -906,10 +906,9 @@ func TestInt64Seq_Trim(t *testing.T) {
 		fn func(i int, v Int64) bool
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    Int64s
-		wantErr bool
+		name string
+		args args
+		want Int64s
 	}{
 		{
 			name: "regular",
@@ -918,34 +917,26 @@ func TestInt64Seq_Trim(t *testing.T) {
 					return i >= 5
 				},
 			},
-			want:    data[:5],
-			wantErr: false,
+			want: data[:5],
 		},
 		{
 			name: "nil fn",
 			args: args{
 				fn: nil,
 			},
-			want:    data[:5],
-			wantErr: true,
+			want: data,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(data)
-			if err := s.Trim(tt.args.fn); (err != nil) != tt.wantErr {
-				t.Errorf("Trim() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				if got := s.slice; !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Trim() = %v, want %v", got, tt.want)
-					for i, v := range got {
-						fmt.Println(i, v)
-					}
-					for i, v := range tt.want {
-						fmt.Println(i, v)
-					}
+			if got := s.Trim(tt.args.fn).Int64s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Trim() = %v, want %v", got, tt.want)
+				for i, v := range got {
+					fmt.Println(i, v)
+				}
+				for i, v := range tt.want {
+					fmt.Println(i, v)
 				}
 			}
 		})
