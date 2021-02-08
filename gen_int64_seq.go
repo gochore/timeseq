@@ -49,7 +49,7 @@ func (s Int64s) Slice(i, j int) Interface {
 
 // Int64Seq is a wrapper with useful methods of Int64 slice
 type Int64Seq struct {
-	slice Int64s
+	innerSlice Int64s
 
 	indexOnce  sync.Once
 	timeIndex  map[timeKey][]int
@@ -74,24 +74,34 @@ func WrapInt64Seq(slice Int64s) *Int64Seq {
 
 func newInt64Seq(slice Int64s) *Int64Seq {
 	ret := &Int64Seq{
-		slice: slice,
+		innerSlice: slice,
 	}
 	return ret
 }
 
+func (s *Int64Seq) slice() Int64s {
+	if s == nil {
+		return nil
+	}
+	return s.innerSlice
+}
+
 func (s *Int64Seq) buildIndex() {
+	if s == nil {
+		return
+	}
 	s.indexOnce.Do(func() {
-		timeIndex := make(map[timeKey][]int, len(s.slice))
-		valueIndex := make(map[int64][]int, len(s.slice))
+		timeIndex := make(map[timeKey][]int, len(s.innerSlice))
+		valueIndex := make(map[int64][]int, len(s.innerSlice))
 		valueSlice := s.valueSlice[:0]
-		for i, v := range s.slice {
+		for i, v := range s.innerSlice {
 			k := newTimeKey(v.Time)
 			timeIndex[k] = append(timeIndex[k], i)
 			valueIndex[v.Value] = append(valueIndex[v.Value], i)
 			valueSlice = append(valueSlice, i)
 		}
 		sort.SliceStable(valueSlice, func(i, j int) bool {
-			return s.slice[valueSlice[i]].Value < s.slice[valueSlice[j]].Value
+			return s.innerSlice[valueSlice[i]].Value < s.innerSlice[valueSlice[j]].Value
 		})
 		s.timeIndex = timeIndex
 		s.valueIndex = valueIndex
@@ -100,27 +110,34 @@ func (s *Int64Seq) buildIndex() {
 }
 
 func (s *Int64Seq) resetIndex() {
+	if s == nil {
+		return
+	}
 	s.indexOnce = sync.Once{}
 }
 
 // Int64s returns a replica of inside slice
 func (s *Int64Seq) Int64s() Int64s {
-	slice := make(Int64s, len(s.slice))
-	copy(slice, s.slice)
+	sslice := s.slice()
+
+	slice := make(Int64s, len(sslice))
+	copy(slice, sslice)
 	return slice
 }
 
 // Len returns length of inside slice
 func (s *Int64Seq) Len() int {
-	return len(s.slice)
+	sslice := s.slice()
+	return len(sslice)
 }
 
 // Index returns element of inside slice, returns zero if index is out of range
 func (s *Int64Seq) Index(i int) Int64 {
-	if i < 0 || i >= len(s.slice) {
+	sslice := s.slice()
+	if i < 0 || i >= len(sslice) {
 		return Int64{}
 	}
-	return s.slice[i]
+	return sslice[i]
 }
 
 // Time returns the first element with time t, returns zero if not found
@@ -135,13 +152,14 @@ func (s *Int64Seq) Time(t time.Time) Int64 {
 // MTime returns all elements with time t, returns nil if not found
 func (s *Int64Seq) MTime(t time.Time) Int64s {
 	s.buildIndex()
+	sslice := s.slice()
 	index := s.timeIndex[newTimeKey(t)]
 	if len(index) == 0 {
 		return nil
 	}
 	ret := make(Int64s, len(index))
 	for i, v := range index {
-		ret[i] = s.slice[v]
+		ret[i] = sslice[v]
 	}
 	return ret
 }
@@ -158,20 +176,22 @@ func (s *Int64Seq) Value(v int64) Int64 {
 // MValue returns all elements with value v, returns nil if not found
 func (s *Int64Seq) MValue(v int64) Int64s {
 	s.buildIndex()
+	sslice := s.slice()
 	index := s.valueIndex[v]
 	if len(index) == 0 {
 		return nil
 	}
 	ret := make(Int64s, len(index))
 	for i, v := range index {
-		ret[i] = s.slice[v]
+		ret[i] = sslice[v]
 	}
 	return ret
 }
 
 // Traverse call fn for every element one by one, break if fn returns true
 func (s *Int64Seq) Traverse(fn func(i int, v Int64) (stop bool)) {
-	for i, v := range s.slice {
+	sslice := s.slice()
+	for i, v := range sslice {
 		if fn != nil && fn(i, v) {
 			break
 		}
@@ -181,7 +201,8 @@ func (s *Int64Seq) Traverse(fn func(i int, v Int64) (stop bool)) {
 // Sum returns sum of all values
 func (s *Int64Seq) Sum() int64 {
 	var ret int64
-	for _, v := range s.slice {
+	sslice := s.slice()
+	for _, v := range sslice {
 		ret += v.Value
 	}
 	return ret
@@ -191,7 +212,8 @@ func (s *Int64Seq) Sum() int64 {
 func (s *Int64Seq) Max() Int64 {
 	var max Int64
 	found := false
-	for _, v := range s.slice {
+	sslice := s.slice()
+	for _, v := range sslice {
 		if !found {
 			max = v
 			found = true
@@ -206,7 +228,8 @@ func (s *Int64Seq) Max() Int64 {
 func (s *Int64Seq) Min() Int64 {
 	var min Int64
 	found := false
-	for _, v := range s.slice {
+	sslice := s.slice()
+	for _, v := range sslice {
 		if !found {
 			min = v
 			found = true
@@ -219,25 +242,28 @@ func (s *Int64Seq) Min() Int64 {
 
 // First returns the first element, returns zero if empty
 func (s *Int64Seq) First() Int64 {
-	if len(s.slice) == 0 {
+	sslice := s.slice()
+	if len(sslice) == 0 {
 		return Int64{}
 	}
-	return s.slice[0]
+	return sslice[0]
 }
 
 // Last returns the last element, returns zero if empty
 func (s *Int64Seq) Last() Int64 {
-	if len(s.slice) == 0 {
+	sslice := s.slice()
+	if len(sslice) == 0 {
 		return Int64{}
 	}
-	return s.slice[len(s.slice)-1]
+	return sslice[len(sslice)-1]
 }
 
 // Percentile returns the element matched with percentile pct, returns zero if empty,
 // the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
 func (s *Int64Seq) Percentile(pct float64) Int64 {
 	s.buildIndex()
-	if len(s.slice) == 0 {
+	sslice := s.slice()
+	if len(sslice) == 0 {
 		return Int64{}
 	}
 	if pct > 1 {
@@ -246,27 +272,29 @@ func (s *Int64Seq) Percentile(pct float64) Int64 {
 	if pct < 0 {
 		pct = 0
 	}
-	i := int(float64(len(s.slice))*pct - 1)
+	i := int(float64(len(sslice))*pct - 1)
 	if i < 0 {
 		i = 0
 	}
-	return s.slice[s.valueSlice[i]]
+	return sslice[s.valueSlice[i]]
 }
 
 // Range returns a sub *Int64Seq with specified interval
 func (s *Int64Seq) Range(interval Interval) *Int64Seq {
-	slice := Range(s.slice, interval).(Int64s)
+	sslice := s.slice()
+	slice := Range(sslice, interval).(Int64s)
 	return newInt64Seq(slice)
 }
 
 // Range returns a *Int64Seq without elements which make fn returns true
 func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
-	if fn == nil || len(s.slice) == 0 {
+	sslice := s.slice()
+	if fn == nil || len(sslice) == 0 {
 		return s
 	}
 
 	removeM := map[int]struct{}{}
-	for i, v := range s.slice {
+	for i, v := range sslice {
 		if fn(i, v) {
 			removeM[i] = struct{}{}
 		}
@@ -275,8 +303,8 @@ func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
 		return s
 	}
 
-	slice := make(Int64s, 0, len(s.slice)-len(removeM))
-	for i, v := range s.slice {
+	slice := make(Int64s, 0, len(sslice)-len(removeM))
+	for i, v := range sslice {
 		if _, ok := removeM[i]; ok {
 			continue
 		}
@@ -294,10 +322,10 @@ func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, seq *Int64S
 
 	var ret Int64s
 
-	slice1 := s.slice
+	slice1 := s.slice()
 	var slice2 Int64s
 	if seq != nil {
-		slice2 = seq.slice
+		slice2 = seq.slice()
 	}
 
 	for i1, i2 := 0, 0; i1 < len(slice1) || i2 < len(slice2); {
@@ -354,16 +382,17 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 	slice := Int64s{}
 	temp := Int64s{}
 
+	sslice := s.slice()
 	if duration <= 0 {
 		for i := 0; i < s.Len(); {
-			t := s.slice[i].Time
+			t := sslice[i].Time
 			if !interval.Contain(t) {
 				i++
 				continue
 			}
 			temp = temp[:0]
-			for i < s.slice.Len() && t.Equal(s.slice[i].Time) {
-				temp = append(temp, s.slice[i])
+			for i < sslice.Len() && t.Equal(sslice[i].Time) {
+				temp = append(temp, sslice[i])
 				i++
 			}
 			v := fn(t, temp)
@@ -376,8 +405,8 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 		}
 	} else {
 		var begin time.Time
-		if len(s.slice) > 0 {
-			begin = s.slice[0].Time.Truncate(duration)
+		if len(sslice) > 0 {
+			begin = sslice[0].Time.Truncate(duration)
 		}
 		if interval.NotBefore != nil {
 			begin = (*interval.NotBefore).Truncate(duration)
@@ -388,12 +417,12 @@ func (s *Int64Seq) Aggregate(fn func(t time.Time, slice Int64s) *int64, duration
 		for t, i := begin, 0; interval.Contain(t); t = t.Add(duration) {
 			temp = temp[:0]
 			itv := BeginAt(t).EndAt(t.Add(duration))
-			for i < len(s.slice) {
-				if s.slice[i].Time.After(*itv.NotAfter) {
+			for i < len(sslice) {
+				if sslice[i].Time.After(*itv.NotAfter) {
 					break
 				}
-				if itv.Contain(s.slice[i].Time) {
-					temp = append(temp, s.slice[i])
+				if itv.Contain(sslice[i].Time) {
+					temp = append(temp, sslice[i])
 				}
 				i++
 			}

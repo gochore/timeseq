@@ -639,7 +639,7 @@ func Test{{.Name}}Seq_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := New{{.Name}}Seq(data)
-			if got := s.Range(tt.args.interval).slice; !reflect.DeepEqual(got, tt.want) {
+			if got := s.Range(tt.args.interval).{{.Name}}s; !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
 			}
 		})

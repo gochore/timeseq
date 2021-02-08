@@ -641,7 +641,7 @@ func TestInt64Seq_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(data)
-			if got := s.Range(tt.args.interval).slice; !reflect.DeepEqual(got, tt.want) {
+			if got := s.Range(tt.args.interval).Int64s(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
 			}
 		})
