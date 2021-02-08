@@ -641,258 +641,8 @@ func TestUint32Seq_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUint32Seq(data)
-			if got := s.Range(tt.args.interval).slice; !reflect.DeepEqual(got, tt.want) {
+			if got := s.Range(tt.args.interval).Uint32s(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestUint32Seq_Merge(t *testing.T) {
-	data := RandomUint32s(10)
-	Sort(data)
-
-	type args struct {
-		fn     func(t time.Time, v1, v2 *uint32) *uint32
-		slices []Uint32s
-	}
-	tests := []struct {
-		name    string
-		data    Uint32s
-		args    args
-		want    Uint32s
-		wantErr bool
-	}{
-		{
-			name: "regular",
-			data: data[0:7],
-			args: args{
-				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Uint32s{data[3:10]},
-			},
-			want: data,
-		},
-		{
-			name: "reverse",
-			data: data[3:10],
-			args: args{
-				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Uint32s{data[0:7]},
-			},
-			want: data,
-		},
-		{
-			name: "nil fn",
-			data: nil,
-			args: args{
-				fn: nil,
-			},
-			wantErr: true,
-		},
-		{
-			name: "multiple",
-			data: nil,
-			args: args{
-				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Uint32s{
-					data[1:2],
-					data[0:4],
-					nil,
-					data[2:9],
-					data[9:],
-				},
-			},
-			want: data,
-		},
-		{
-			name: "not sorted",
-			data: data[0:7],
-			args: args{
-				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Uint32s{
-					append(Uint32s{data[9]}, data[3:9]...),
-				},
-			},
-			want: data,
-		},
-		{
-			name: "empty slices",
-			data: data[0:7],
-			args: args{
-				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Uint32s{},
-			},
-			want: data[0:7],
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := NewUint32Seq(tt.data)
-			if err := s.Merge(tt.args.fn, tt.args.slices...); (err != nil) != tt.wantErr {
-				t.Errorf("Merge() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				if got := s.slice; !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Merge() = %v, want %v", got, tt.want)
-				}
-			}
-		})
-	}
-}
-
-func TestUint32Seq_Aggregate(t *testing.T) {
-	data := RandomUint32s(100)
-	now := time.Now()
-	begin := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	end := begin.Add(24*time.Hour - 1)
-
-	type args struct {
-		fn       func(t time.Time, slice Uint32s) *uint32
-		duration time.Duration
-		interval Interval
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "regular",
-			args: args{
-				fn: func(t time.Time, slice Uint32s) *uint32 {
-					ret := uint32(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
-					for _, v := range slice {
-						ret += v.Value
-					}
-					return &ret
-				},
-				duration: time.Hour,
-				interval: BeginAt(begin).EndAt(end),
-			},
-			wantErr: false,
-		},
-		{
-			name: "nil fn",
-			args: args{
-				fn:       nil,
-				duration: time.Hour,
-				interval: BeginAt(begin).EndAt(end),
-			},
-			wantErr: true,
-		},
-		{
-			name: "zero duration",
-			args: args{
-				fn: func(t time.Time, slice Uint32s) *uint32 {
-					ret := uint32(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
-					for _, v := range slice {
-						ret += v.Value
-					}
-					return &ret
-				},
-				duration: 0,
-				interval: BeginAt(begin).EndAt(end),
-			},
-			wantErr: false,
-		},
-		{
-			name: "shorter interval with zero duraion",
-			args: args{
-				fn: func(t time.Time, slice Uint32s) *uint32 {
-					ret := uint32(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
-					for _, v := range slice {
-						ret += v.Value
-					}
-					return &ret
-				},
-				duration: 0,
-				interval: BeginAt(now).EndAt(end),
-			},
-			wantErr: false,
-		},
-		{
-			name: "shorter interval with non zero duraion",
-			args: args{
-				fn: func(t time.Time, slice Uint32s) *uint32 {
-					ret := uint32(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
-					for _, v := range slice {
-						ret += v.Value
-					}
-					return &ret
-				},
-				duration: time.Minute,
-				interval: BeginAt(now).EndAt(end),
-			},
-			wantErr: false,
-		},
-		{
-			name: "miss begin",
-			args: args{
-				fn: func(t time.Time, slice Uint32s) *uint32 {
-					ret := uint32(t.Hour())
-					if len(slice) != 0 {
-						ret = 0
-					}
-					for _, v := range slice {
-						ret += v.Value
-					}
-					return &ret
-				},
-				duration: time.Minute,
-				interval: EndAt(end),
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := NewUint32Seq(data)
-			if err := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval); (err != nil) != tt.wantErr {
-				t.Errorf("Aggregate() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				for i, v := range s.slice {
-					fmt.Println(i, v.Value, v.Time)
-				}
 			}
 		})
 	}
@@ -906,10 +656,9 @@ func TestUint32Seq_Trim(t *testing.T) {
 		fn func(i int, v Uint32) bool
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    Uint32s
-		wantErr bool
+		name string
+		args args
+		want Uint32s
 	}{
 		{
 			name: "regular",
@@ -918,66 +667,287 @@ func TestUint32Seq_Trim(t *testing.T) {
 					return i >= 5
 				},
 			},
-			want:    data[:5],
-			wantErr: false,
+			want: data[:5],
 		},
 		{
 			name: "nil fn",
 			args: args{
 				fn: nil,
 			},
-			want:    data[:5],
-			wantErr: true,
+			want: data,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUint32Seq(data)
-			if err := s.Trim(tt.args.fn); (err != nil) != tt.wantErr {
-				t.Errorf("Trim() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				if got := s.slice; !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Trim() = %v, want %v", got, tt.want)
-					for i, v := range got {
-						fmt.Println(i, v)
-					}
-					for i, v := range tt.want {
-						fmt.Println(i, v)
-					}
+			if got := s.Trim(tt.args.fn).Uint32s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Trim() = %v, want %v", got, tt.want)
+				for i, v := range got {
+					fmt.Println(i, v)
+				}
+				for i, v := range tt.want {
+					fmt.Println(i, v)
 				}
 			}
 		})
 	}
 }
 
-func TestUint32Seq_Clone(t *testing.T) {
+func TestUint32Seq_Merge(t *testing.T) {
 	data := RandomUint32s(10)
 	Sort(data)
+
+	type args struct {
+		fn    func(t time.Time, v1, v2 *uint32) *uint32
+		slice Uint32s
+	}
 	tests := []struct {
 		name string
-		seq  *Uint32Seq
-		want *Uint32Seq
+		data Uint32s
+		args args
+		want Uint32s
 	}{
 		{
 			name: "regular",
-			seq:  NewUint32Seq(data),
-			want: &Uint32Seq{
-				slice: data,
+			data: data[0:7],
+			args: args{
+				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slice: data[3:10],
 			},
+			want: data,
 		},
 		{
-			name: "nil",
-			seq:  nil,
-			want: nil,
+			name: "reverse",
+			data: data[3:10],
+			args: args{
+				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slice: data[0:7],
+			},
+			want: data,
+		},
+		{
+			name: "nil fn",
+			data: data[3:10],
+			args: args{
+				fn: nil,
+			},
+			want: data[3:10],
+		},
+		{
+			name: "empty slices",
+			data: data[0:7],
+			args: args{
+				fn: func(t time.Time, v1, v2 *uint32) *uint32 {
+					if v1 != nil {
+						return v1
+					}
+					return v2
+				},
+				slice: Uint32s{},
+			},
+			want: data[0:7],
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.seq.Clone(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Clone() = %v, want %v", got, tt.want)
+			s := NewUint32Seq(tt.data)
+			if got := s.Merge(tt.args.fn, WrapUint32Seq(tt.args.slice)).Uint32s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Merge() = %v, want %v", len(got), len(tt.want))
+				for i, v := range got {
+					t.Errorf("got  %v %v", i, v)
+				}
+				for i, v := range tt.want {
+					t.Errorf("want %v %v", i, v)
+				}
+				return
 			}
+		})
+	}
+}
+
+func TestUint32Seq_Aggregate(t *testing.T) {
+	type args struct {
+		fn       func(t time.Time, slice Uint32s) *uint32
+		duration time.Duration
+		interval Interval
+	}
+	tests := []struct {
+		name  string
+		slice Uint32s
+		args  args
+		want  Uint32s
+	}{
+		{
+			name: "regular",
+			slice: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:19:01+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					var ret uint32
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Hour,
+				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+			},
+			want: Uint32s{
+				{Time: parseTime("2021-02-08T17:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T18:00:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
+				{Time: parseTime("2021-02-08T20:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T21:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
+			},
+		},
+		{
+			name: "nil fn",
+			slice: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:19:01+08:00"), Value: 3},
+			},
+			args: args{
+				fn:       nil,
+				duration: time.Hour,
+				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+			},
+			want: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:19:01+08:00"), Value: 3},
+			},
+		},
+		{
+			name: "zero duration",
+			slice: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					var ret uint32
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: 0,
+				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+			},
+			want: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+		},
+		{
+			name: "shorter interval with zero duraion",
+			slice: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					var ret uint32
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: 0,
+				interval: BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+			},
+			want: Uint32s{
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+		},
+		{
+			name: "shorter interval with non zero duraion",
+			slice: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					var ret uint32
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Hour,
+				interval: BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+			},
+			want: Uint32s{
+				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
+				{Time: parseTime("2021-02-08T20:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T21:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
+			},
+		},
+		{
+			name: "miss begin",
+			slice: Uint32s{
+				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
+				{Time: parseTime("2021-02-08T19:09:01+08:00"), Value: 3},
+			},
+			args: args{
+				fn: func(t time.Time, slice Uint32s) *uint32 {
+					var ret uint32
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Hour,
+				interval: EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+			},
+			want: Uint32s{
+				{Time: parseTime("2021-02-08T18:00:00+08:00"), Value: 1},
+				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
+				{Time: parseTime("2021-02-08T20:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T21:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
+				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewUint32Seq(tt.slice)
+			if got := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval).Uint32s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Aggregate() got = %v, want %v", len(got), len(tt.want))
+				for i, v := range got {
+					t.Errorf("got  %v %v", i, v)
+				}
+				for i, v := range tt.want {
+					t.Errorf("want %v %v", i, v)
+				}
+				return
+			}
+
 		})
 	}
 }
