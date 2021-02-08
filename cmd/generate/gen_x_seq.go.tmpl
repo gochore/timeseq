@@ -258,8 +258,8 @@ func (s *{{.Name}}Seq) Range(interval Interval) *{{.Name}}Seq {
 	return new{{.Name}}Seq(slice)
 }
 
-// Range return a new *Int64Seq without elements which make fn return true
-func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
+// Range return a new *{{.Name}}Seq without elements which make fn return true
+func (s *{{.Name}}Seq) Trim(fn func(i int, v {{.Name}}) bool) *{{.Name}}Seq {
 	if fn == nil || len(s.slice) == 0 {
 		return s
 	}
@@ -274,7 +274,7 @@ func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
 		return s
 	}
 
-	slice := make(Int64s, 0, len(s.slice)-len(removeM))
+	slice := make({{.Name}}s, 0, len(s.slice)-len(removeM))
 	for i, v := range s.slice {
 		if _, ok := removeM[i]; ok {
 			continue
@@ -282,7 +282,7 @@ func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
 		slice = append(slice, v)
 	}
 
-	return newInt64Seq(slice)
+	return new{{.Name}}Seq(slice)
 }
 
 // Merge merge slices to inside slice according to the specified rule
@@ -413,12 +413,4 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 	s.slice = got
 	s.resetIndex()
 	return nil
-}
-
-// Clone return a new *{{.Name}}Seq with copied slice inside
-func (s *{{.Name}}Seq) Clone() *{{.Name}}Seq {
-	if s == nil {
-		return nil
-	}
-	return new{{.Name}}Seq(s.slice)
 }
