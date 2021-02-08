@@ -3,7 +3,6 @@
 package timeseq
 
 import (
-	"errors"
 	"sort"
 	"sync"
 	"time"
@@ -288,71 +287,62 @@ func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
 }
 
 // Merge returns a new *Int64Seq with merged data according to the specified rule
-func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, slices ...Int64s) error {
+func (s *Int64Seq) Merge(fn func(t time.Time, v1, v2 *int64) *int64, seq *Int64Seq) *Int64Seq {
 	if fn == nil {
-		return errors.New("nil fn")
+		return s
 	}
 
-	if len(slices) == 0 {
-		return nil
-	}
+	var ret Int64s
 
 	slice1 := s.slice
-	for _, slice2 := range slices {
-		if !IsSorted(slice2) {
-			temp := make(Int64s, len(slice2))
-			copy(temp, slice2)
-			Sort(temp)
-			slice2 = temp
-		}
-		var got Int64s
-		for i1, i2 := 0, 0; i1 < len(slice1) || i2 < len(slice2); {
-			var (
-				t time.Time
-				v *int64
-			)
-			switch {
-			case i1 == len(slice1):
-				t = slice2[i2].Time
-				v2 := slice2[i2].Value
-				v = fn(t, nil, &v2)
-				i2++
-			case i2 == len(slice2):
-				t = slice1[i1].Time
-				v1 := slice1[i1].Value
-				v = fn(t, &v1, nil)
-				i1++
-			case slice1[i1].Time.Equal(slice2[i2].Time):
-				t = slice1[i1].Time
-				v1 := slice1[i1].Value
-				v2 := slice2[i2].Value
-				v = fn(t, &v1, &v2)
-				i1++
-				i2++
-			case slice1[i1].Time.Before(slice2[i2].Time):
-				t = slice1[i1].Time
-				v1 := slice1[i1].Value
-				v = fn(t, &v1, nil)
-				i1++
-			case slice1[i1].Time.After(slice2[i2].Time):
-				t = slice2[i2].Time
-				v2 := slice2[i2].Value
-				v = fn(t, nil, &v2)
-				i2++
-			}
-			if v != nil {
-				got = append(got, Int64{
-					Time:  t,
-					Value: *v,
-				})
-			}
-		}
-		slice1 = got
+	var slice2 Int64s
+	if seq != nil {
+		slice2 = seq.slice
 	}
 
-	s.slice = slice1
-	s.resetIndex()
-	return nil
+	for i1, i2 := 0, 0; i1 < len(slice1) || i2 < len(slice2); {
+		var (
+			t time.Time
+			v *int64
+		)
+		switch {
+		case i1 == len(slice1):
+			t = slice2[i2].Time
+			v2 := slice2[i2].Value
+			v = fn(t, nil, &v2)
+			i2++
+		case i2 == len(slice2):
+			t = slice1[i1].Time
+			v1 := slice1[i1].Value
+			v = fn(t, &v1, nil)
+			i1++
+		case slice1[i1].Time.Equal(slice2[i2].Time):
+			t = slice1[i1].Time
+			v1 := slice1[i1].Value
+			v2 := slice2[i2].Value
+			v = fn(t, &v1, &v2)
+			i1++
+			i2++
+		case slice1[i1].Time.Before(slice2[i2].Time):
+			t = slice1[i1].Time
+			v1 := slice1[i1].Value
+			v = fn(t, &v1, nil)
+			i1++
+		case slice1[i1].Time.After(slice2[i2].Time):
+			t = slice2[i2].Time
+			v2 := slice2[i2].Value
+			v = fn(t, nil, &v2)
+			i2++
+		}
+		if v != nil {
+			ret = append(ret, Int64{
+				Time:  t,
+				Value: *v,
+			})
+		}
+	}
+
+	return newInt64Seq(ret)
 }
 
 // Aggregate returns a aggregated *Int64Seq according to the specified rule

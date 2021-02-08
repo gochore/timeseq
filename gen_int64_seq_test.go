@@ -653,15 +653,14 @@ func TestInt64Seq_Merge(t *testing.T) {
 	Sort(data)
 
 	type args struct {
-		fn     func(t time.Time, v1, v2 *int64) *int64
-		slices []Int64s
+		fn    func(t time.Time, v1, v2 *int64) *int64
+		slice Int64s
 	}
 	tests := []struct {
-		name    string
-		data    Int64s
-		args    args
-		want    Int64s
-		wantErr bool
+		name string
+		data Int64s
+		args args
+		want Int64s
 	}{
 		{
 			name: "regular",
@@ -673,7 +672,7 @@ func TestInt64Seq_Merge(t *testing.T) {
 					}
 					return v2
 				},
-				slices: []Int64s{data[3:10]},
+				slice: data[3:10],
 			},
 			want: data,
 		},
@@ -687,53 +686,17 @@ func TestInt64Seq_Merge(t *testing.T) {
 					}
 					return v2
 				},
-				slices: []Int64s{data[0:7]},
+				slice: data[0:7],
 			},
 			want: data,
 		},
 		{
 			name: "nil fn",
-			data: nil,
+			data: data[3:10],
 			args: args{
 				fn: nil,
 			},
-			wantErr: true,
-		},
-		{
-			name: "multiple",
-			data: nil,
-			args: args{
-				fn: func(t time.Time, v1, v2 *int64) *int64 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Int64s{
-					data[1:2],
-					data[0:4],
-					nil,
-					data[2:9],
-					data[9:],
-				},
-			},
-			want: data,
-		},
-		{
-			name: "not sorted",
-			data: data[0:7],
-			args: args{
-				fn: func(t time.Time, v1, v2 *int64) *int64 {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []Int64s{
-					append(Int64s{data[9]}, data[3:9]...),
-				},
-			},
-			want: data,
+			want: data[3:10],
 		},
 		{
 			name: "empty slices",
@@ -745,7 +708,7 @@ func TestInt64Seq_Merge(t *testing.T) {
 					}
 					return v2
 				},
-				slices: []Int64s{},
+				slice: Int64s{},
 			},
 			want: data[0:7],
 		},
@@ -753,14 +716,15 @@ func TestInt64Seq_Merge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewInt64Seq(tt.data)
-			if err := s.Merge(tt.args.fn, tt.args.slices...); (err != nil) != tt.wantErr {
-				t.Errorf("Merge() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				if got := s.slice; !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Merge() = %v, want %v", got, tt.want)
+			if got := s.Merge(tt.args.fn, WrapInt64Seq(tt.args.slice)).Int64s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Merge() = %v, want %v", len(got), len(tt.want))
+				for i, v := range got {
+					t.Errorf("got  %v %v", i, v)
 				}
+				for i, v := range tt.want {
+					t.Errorf("want %v %v", i, v)
+				}
+				return
 			}
 		})
 	}

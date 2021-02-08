@@ -696,15 +696,14 @@ func Test{{.Name}}Seq_Merge(t *testing.T) {
 	Sort(data)
 
 	type args struct {
-		fn     func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}}
-		slices []{{.Name}}s
+		fn    func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}}
+		slice {{.Name}}s
 	}
 	tests := []struct {
-		name    string
-		data    {{.Name}}s
-		args    args
-		want    {{.Name}}s
-		wantErr bool
+		name string
+		data {{.Name}}s
+		args args
+		want {{.Name}}s
 	}{
 		{
 			name: "regular",
@@ -716,7 +715,7 @@ func Test{{.Name}}Seq_Merge(t *testing.T) {
 					}
 					return v2
 				},
-				slices: []{{.Name}}s{data[3:10]},
+				slice: data[3:10],
 			},
 			want: data,
 		},
@@ -730,53 +729,17 @@ func Test{{.Name}}Seq_Merge(t *testing.T) {
 					}
 					return v2
 				},
-				slices: []{{.Name}}s{data[0:7]},
+				slice: data[0:7],
 			},
 			want: data,
 		},
 		{
 			name: "nil fn",
-			data: nil,
+			data: data[3:10],
 			args: args{
 				fn: nil,
 			},
-			wantErr: true,
-		},
-		{
-			name: "multiple",
-			data: nil,
-			args: args{
-				fn: func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}} {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []{{.Name}}s{
-					data[1:2],
-					data[0:4],
-					nil,
-					data[2:9],
-					data[9:],
-				},
-			},
-			want: data,
-		},
-		{
-			name: "not sorted",
-			data: data[0:7],
-			args: args{
-				fn: func(t time.Time, v1, v2 *{{.Type}}) *{{.Type}} {
-					if v1 != nil {
-						return v1
-					}
-					return v2
-				},
-				slices: []{{.Name}}s{
-					append({{.Name}}s{data[9]}, data[3:9]...),
-				},
-			},
-			want: data,
+			want: data[3:10],
 		},
 		{
 			name: "empty slices",
@@ -788,7 +751,7 @@ func Test{{.Name}}Seq_Merge(t *testing.T) {
 					}
 					return v2
 				},
-				slices: []{{.Name}}s{},
+				slice: {{.Name}}s{},
 			},
 			want: data[0:7],
 		},
@@ -796,19 +759,19 @@ func Test{{.Name}}Seq_Merge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := New{{.Name}}Seq(tt.data)
-			if err := s.Merge(tt.args.fn, tt.args.slices...); (err != nil) != tt.wantErr {
-				t.Errorf("Merge() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr {
-				if got := s.slice; !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Merge() = %v, want %v", got, tt.want)
+			if got := s.Merge(tt.args.fn, Wrap{{.Name}}Seq(tt.args.slice)).{{.Name}}s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Merge() = %v, want %v", len(got), len(tt.want))
+				for i, v := range got {
+					t.Errorf("got  %v %v", i, v)
 				}
+				for i, v := range tt.want {
+					t.Errorf("want %v %v", i, v)
+				}
+				return
 			}
 		})
 	}
 }
-
 
 func Test{{.Name}}Seq_Aggregate(t *testing.T) {
 	type args struct {
