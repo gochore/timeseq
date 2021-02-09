@@ -372,10 +372,10 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 		return s
 	}
 
-	slice := {{.Name}}s{}
+	ret := {{.Name}}s{}
 	temp := {{.Name}}s{}
 
-	sslice := s.slice()
+	sslice := s.getSlice()
 	if duration <= 0 {
 		for i := 0; i < s.Len(); {
 			t := sslice[i].Time
@@ -390,44 +390,58 @@ func (s *{{.Name}}Seq) Aggregate(fn func(t time.Time, slice {{.Name}}s) *{{.Type
 			}
 			v := fn(t, temp)
 			if v != nil {
-				slice = append(slice, {{.Name}}{
+				ret = append(ret, {{.Name}}{
 					Time:  t,
 					Value: *v,
 				})
 			}
 		}
-	} else {
-		var begin time.Time
-		if len(sslice) > 0 {
-			begin = sslice[0].Time.Truncate(duration)
-		}
-		if interval.NotBefore != nil {
-			begin = (*interval.NotBefore).Truncate(duration)
-			if begin.Before(*interval.NotBefore) {
-				begin = begin.Add(duration)
-			}
-		}
-		for t, i := begin, 0; interval.Contain(t); t = t.Add(duration) {
-			temp = temp[:0]
-			itv := BeginAt(t).EndAt(t.Add(duration))
-			for i < len(sslice) {
-				if sslice[i].Time.After(*itv.NotAfter) {
-					break
-				}
-				if itv.Contain(sslice[i].Time) {
-					temp = append(temp, sslice[i])
-				}
-				i++
-			}
-			v := fn(t, temp)
-			if v != nil {
-				slice = append(slice, {{.Name}}{
-					Time:  t,
-					Value: *v,
-				})
-			}
+		return new{{.Name}}Seq(ret)
+	}
+
+	if len(sslice) == 0 && interval.Duration() < 0 {
+		return s
+	}
+
+	var begin time.Time
+	if len(sslice) > 0 {
+		begin = sslice[0].Time.Truncate(duration)
+	}
+	if interval.NotBefore != nil {
+		begin = (*interval.NotBefore).Truncate(duration)
+		if begin.Before(*interval.NotBefore) {
+			begin = begin.Add(duration)
 		}
 	}
 
-	return new{{.Name}}Seq(slice)
+	var end time.Time
+	if len(sslice) > 0 {
+		end = sslice[len(sslice)-1].Time.Truncate(duration)
+	}
+	if interval.NotAfter != nil {
+		end = (*interval.NotAfter).Truncate(duration)
+	}
+
+	for t, i := begin, 0; !t.After(end); t = t.Add(duration) {
+		temp = temp[:0]
+		itv := BeginAt(t).EndAt(t.Add(duration))
+		for i < len(sslice) {
+			if sslice[i].Time.After(*itv.NotAfter) {
+				break
+			}
+			if itv.Contain(sslice[i].Time) {
+				temp = append(temp, sslice[i])
+			}
+			i++
+		}
+		v := fn(t, temp)
+		if v != nil {
+			ret = append(ret, {{.Name}}{
+				Time:  t,
+				Value: *v,
+			})
+		}
+	}
+
+	return new{{.Name}}Seq(ret)
 }
