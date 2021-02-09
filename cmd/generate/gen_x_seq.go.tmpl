@@ -102,13 +102,6 @@ func (s *{{.Name}}Seq) getValueIndex() map[{{.Type}}][]int {
 	return s.valueIndex
 }
 
-func (s *{{.Name}}Seq) getValueOrder() []int {
-	if s == nil {
-		return nil
-	}
-	return s.valueOrder
-}
-
 func (s *{{.Name}}Seq) buildIndex() {
 	if s == nil {
 		return
@@ -292,7 +285,7 @@ func (s *{{.Name}}Seq) Percentile(pct float64) {{.Name}} {
 	if i < 0 {
 		i = 0
 	}
-	return sslice[s.getValueOrder()[i]]
+	return sslice[s.valueOrder[i]]
 }
 
 // Range returns a sub *{{.Name}}Seq with specified interval

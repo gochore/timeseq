@@ -104,13 +104,6 @@ func (s *Int64Seq) getValueIndex() map[int64][]int {
 	return s.valueIndex
 }
 
-func (s *Int64Seq) getValueOrder() []int {
-	if s == nil {
-		return nil
-	}
-	return s.valueOrder
-}
-
 func (s *Int64Seq) buildIndex() {
 	if s == nil {
 		return
@@ -294,7 +287,7 @@ func (s *Int64Seq) Percentile(pct float64) Int64 {
 	if i < 0 {
 		i = 0
 	}
-	return sslice[s.getValueOrder()[i]]
+	return sslice[s.valueOrder[i]]
 }
 
 // Range returns a sub *Int64Seq with specified interval
