@@ -30,6 +30,35 @@ func RandomInt32s(length int) Int32s {
 	return ret
 }
 
+func TestInt32Seq_NilSafe(t *testing.T) {
+	var seq *Int32Seq
+	seq.Int32s()
+	seq.Index(1)
+	seq.Time(time.Now())
+	seq.MTime(time.Now())
+	seq.Value(1)
+	seq.MValue(1)
+	seq.Traverse(func(i int, v Int32) (stop bool) {
+		return false
+	})
+	seq.Sum()
+	seq.Max()
+	seq.Min()
+	seq.First()
+	seq.Last()
+	seq.Percentile(0.5)
+	seq.Range(Interval{})
+	seq.Trim(func(i int, v Int32) bool {
+		return false
+	})
+	seq.Merge(func(t time.Time, v1, v2 *int32) *int32 {
+		return nil
+	}, seq)
+	seq.Aggregate(func(t time.Time, slice Int32s) *int32 {
+		return nil
+	}, time.Hour, Interval{})
+}
+
 func TestInt32_IsZero(t *testing.T) {
 	type fields struct {
 		Time  time.Time
@@ -676,6 +705,15 @@ func TestInt32Seq_Trim(t *testing.T) {
 			},
 			want: data,
 		},
+		{
+			name: "all keep",
+			args: args{
+				fn: func(i int, v Int32) bool {
+					return false
+				},
+			},
+			want: data,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -932,6 +970,22 @@ func TestInt32Seq_Aggregate(t *testing.T) {
 				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
 				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
 			},
+		},
+		{
+			name:  "empty with nil begin and nil end",
+			slice: Int32s{},
+			args: args{
+				fn: func(t time.Time, slice Int32s) *int32 {
+					var ret int32
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Hour,
+				interval: Interval{},
+			},
+			want: Int32s{},
 		},
 	}
 	for _, tt := range tests {

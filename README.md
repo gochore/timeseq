@@ -94,7 +94,7 @@ func main() {
 	})
 
 	// merge data
-	slice2 := timeseq.Ints{
+	seq2 := timeseq.WrapIntSeq(timeseq.Ints{
 		{
 			Time:  now.Add(time.Second),
 			Value: 1,
@@ -103,8 +103,8 @@ func main() {
 			Time:  now.Add(-time.Second),
 			Value: 2,
 		},
-	}
-	if err := seq.Merge(func(t time.Time, v1, v2 *int) *int {
+	})
+	newSeq := seq.Merge(func(t time.Time, v1, v2 *int) *int {
 		if v1 == nil {
 			return v2
 		}
@@ -113,9 +113,9 @@ func main() {
 		}
 		ret := *v1 + *v2
 		return &ret
-	}, slice2); err != nil {
-		panic(err)
-	}
+	}, seq2)
+
+	_ = newSeq
 }
 ```
 
