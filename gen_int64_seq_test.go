@@ -676,6 +676,15 @@ func TestInt64Seq_Trim(t *testing.T) {
 			},
 			want: data,
 		},
+		{
+			name: "all keep",
+			args: args{
+				fn: func(i int, v Int64) bool {
+					return false
+				},
+			},
+			want: data,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
