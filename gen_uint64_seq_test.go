@@ -30,6 +30,35 @@ func RandomUint64s(length int) Uint64s {
 	return ret
 }
 
+func TestUint64Seq_NilSafe(t *testing.T) {
+	var seq *Uint64Seq
+	seq.Uint64s()
+	seq.Index(1)
+	seq.Time(time.Now())
+	seq.MTime(time.Now())
+	seq.Value(1)
+	seq.MValue(1)
+	seq.Traverse(func(i int, v Uint64) (stop bool) {
+		return false
+	})
+	seq.Sum()
+	seq.Max()
+	seq.Min()
+	seq.First()
+	seq.Last()
+	seq.Percentile(0.5)
+	seq.Range(Interval{})
+	seq.Trim(func(i int, v Uint64) bool {
+		return false
+	})
+	seq.Merge(func(t time.Time, v1, v2 *uint64) *uint64 {
+		return nil
+	}, seq)
+	seq.Aggregate(func(t time.Time, slice Uint64s) *uint64 {
+		return nil
+	}, time.Hour, Interval{})
+}
+
 func TestUint64_IsZero(t *testing.T) {
 	type fields struct {
 		Time  time.Time
@@ -676,6 +705,15 @@ func TestUint64Seq_Trim(t *testing.T) {
 			},
 			want: data,
 		},
+		{
+			name: "all keep",
+			args: args{
+				fn: func(i int, v Uint64) bool {
+					return false
+				},
+			},
+			want: data,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -932,6 +970,22 @@ func TestUint64Seq_Aggregate(t *testing.T) {
 				{Time: parseTime("2021-02-08T22:00:00+08:00"), Value: 0},
 				{Time: parseTime("2021-02-08T23:00:00+08:00"), Value: 0},
 			},
+		},
+		{
+			name:  "empty with nil begin and nil end",
+			slice: Uint64s{},
+			args: args{
+				fn: func(t time.Time, slice Uint64s) *uint64 {
+					var ret uint64
+					for _, v := range slice {
+						ret += v.Value
+					}
+					return &ret
+				},
+				duration: time.Hour,
+				interval: Interval{},
+			},
+			want: Uint64s{},
 		},
 	}
 	for _, tt := range tests {
