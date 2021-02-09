@@ -111,13 +111,6 @@ func (s *Int64Seq) buildIndex() {
 	})
 }
 
-func (s *Int64Seq) resetIndex() {
-	if s == nil {
-		return
-	}
-	s.indexOnce = sync.Once{}
-}
-
 // Int64s returns a replica of inside slice
 func (s *Int64Seq) Int64s() Int64s {
 	sslice := s.slice()

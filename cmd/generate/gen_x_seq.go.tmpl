@@ -109,13 +109,6 @@ func (s *{{.Name}}Seq) buildIndex() {
 	})
 }
 
-func (s *{{.Name}}Seq) resetIndex() {
-	if s == nil {
-		return
-	}
-	s.indexOnce = sync.Once{}
-}
-
 // {{.Name}}s returns a replica of inside slice
 func (s *{{.Name}}Seq) {{.Name}}s() {{.Name}}s {
 	sslice := s.slice()
