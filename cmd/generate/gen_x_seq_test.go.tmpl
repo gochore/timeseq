@@ -28,6 +28,35 @@ func Random{{.Name}}s(length int) {{.Name}}s {
 	return ret
 }
 
+func Test{{.Name}}Seq_NilSafe(t *testing.T) {
+	var seq *{{.Name}}Seq
+	seq.{{.Name}}s()
+	seq.Index(1)
+	seq.Time(time.Now())
+	seq.MTime(time.Now())
+	seq.Value(1)
+	seq.MValue(1)
+	seq.Traverse(func(i int, v {{.Name}}) (stop bool) {
+		return false
+	})
+	seq.Sum()
+	seq.Max()
+	seq.Min()
+	seq.First()
+	seq.Last()
+	seq.Percentile(0.5)
+	seq.Range(Interval{})
+	seq.Trim(func(i int, v {{.Name}}) bool {
+		return false
+	})
+	seq.Merge(func(t time.Time, v1, v2 *int64) *int64 {
+		return nil
+	}, seq)
+	seq.Aggregate(func(t time.Time, slice {{.Name}}s) *int64 {
+		return nil
+	}, time.Hour, Interval{})
+}
+
 func Test{{.Name}}_IsZero(t *testing.T) {
 	type fields struct {
 		Time  time.Time

@@ -30,6 +30,35 @@ func RandomInt64s(length int) Int64s {
 	return ret
 }
 
+func TestInt64Seq_NilSafe(t *testing.T) {
+	var seq *Int64Seq
+	seq.Int64s()
+	seq.Index(1)
+	seq.Time(time.Now())
+	seq.MTime(time.Now())
+	seq.Value(1)
+	seq.MValue(1)
+	seq.Traverse(func(i int, v Int64) (stop bool) {
+		return false
+	})
+	seq.Sum()
+	seq.Max()
+	seq.Min()
+	seq.First()
+	seq.Last()
+	seq.Percentile(0.5)
+	seq.Range(Interval{})
+	seq.Trim(func(i int, v Int64) bool {
+		return false
+	})
+	seq.Merge(func(t time.Time, v1, v2 *int64) *int64 {
+		return nil
+	}, seq)
+	seq.Aggregate(func(t time.Time, slice Int64s) *int64 {
+		return nil
+	}, time.Hour, Interval{})
+}
+
 func TestInt64_IsZero(t *testing.T) {
 	type fields struct {
 		Time  time.Time
