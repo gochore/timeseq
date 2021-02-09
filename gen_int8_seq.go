@@ -104,13 +104,6 @@ func (s *Int8Seq) getValueIndex() map[int8][]int {
 	return s.valueIndex
 }
 
-func (s *Int8Seq) getValueOrder() []int {
-	if s == nil {
-		return nil
-	}
-	return s.valueOrder
-}
-
 func (s *Int8Seq) buildIndex() {
 	if s == nil {
 		return
@@ -294,7 +287,7 @@ func (s *Int8Seq) Percentile(pct float64) Int8 {
 	if i < 0 {
 		i = 0
 	}
-	return sslice[s.getValueOrder()[i]]
+	return sslice[s.valueOrder[i]]
 }
 
 // Range returns a sub *Int8Seq with specified interval

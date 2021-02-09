@@ -104,13 +104,6 @@ func (s *UintSeq) getValueIndex() map[uint][]int {
 	return s.valueIndex
 }
 
-func (s *UintSeq) getValueOrder() []int {
-	if s == nil {
-		return nil
-	}
-	return s.valueOrder
-}
-
 func (s *UintSeq) buildIndex() {
 	if s == nil {
 		return
@@ -294,7 +287,7 @@ func (s *UintSeq) Percentile(pct float64) Uint {
 	if i < 0 {
 		i = 0
 	}
-	return sslice[s.getValueOrder()[i]]
+	return sslice[s.valueOrder[i]]
 }
 
 // Range returns a sub *UintSeq with specified interval

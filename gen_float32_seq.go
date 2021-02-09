@@ -104,13 +104,6 @@ func (s *Float32Seq) getValueIndex() map[float32][]int {
 	return s.valueIndex
 }
 
-func (s *Float32Seq) getValueOrder() []int {
-	if s == nil {
-		return nil
-	}
-	return s.valueOrder
-}
-
 func (s *Float32Seq) buildIndex() {
 	if s == nil {
 		return
@@ -294,7 +287,7 @@ func (s *Float32Seq) Percentile(pct float64) Float32 {
 	if i < 0 {
 		i = 0
 	}
-	return sslice[s.getValueOrder()[i]]
+	return sslice[s.valueOrder[i]]
 }
 
 // Range returns a sub *Float32Seq with specified interval
