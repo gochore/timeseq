@@ -297,11 +297,20 @@ func (s *Int64Seq) Range(interval Interval) *Int64Seq {
 	return newInt64Seq(slice)
 }
 
-// Slice returns a sub *Int64Seq with specified index
+// Slice returns a sub *Int64Seq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *Int64Seq) Slice(i, j int) *Int64Seq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return newInt64Seq(slice)
+	if i < 0 {
+		return newInt64Seq(sslice[:j])
+	}
+	if j < 0 {
+		return newInt64Seq(sslice[i:])
+	}
+	return newInt64Seq(sslice[i:j])
 }
 
 // Trim returns a *Int64Seq without elements which make fn returns true

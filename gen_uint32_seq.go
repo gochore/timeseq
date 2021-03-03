@@ -297,11 +297,20 @@ func (s *Uint32Seq) Range(interval Interval) *Uint32Seq {
 	return newUint32Seq(slice)
 }
 
-// Slice returns a sub *Uint32Seq with specified index
+// Slice returns a sub *Uint32Seq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *Uint32Seq) Slice(i, j int) *Uint32Seq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return newUint32Seq(slice)
+	if i < 0 {
+		return newUint32Seq(sslice[:j])
+	}
+	if j < 0 {
+		return newUint32Seq(sslice[i:])
+	}
+	return newUint32Seq(sslice[i:j])
 }
 
 // Trim returns a *Uint32Seq without elements which make fn returns true
