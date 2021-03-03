@@ -295,11 +295,20 @@ func (s *{{.Name}}Seq) Range(interval Interval) *{{.Name}}Seq {
 	return new{{.Name}}Seq(slice)
 }
 
-// Slice returns a sub *{{.Name}}Seq with specified index
+// Slice returns a sub *{{.Name}}Seq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *{{.Name}}Seq) Slice(i, j int) *{{.Name}}Seq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return new{{.Name}}Seq(slice)
+	if i < 0 {
+		return new{{.Name}}Seq(sslice[:j])
+	}
+	if j < 0 {
+		return new{{.Name}}Seq(sslice[i:])
+	}
+	return new{{.Name}}Seq(sslice[i:j])
 }
 
 // Trim returns a *{{.Name}}Seq without elements which make fn returns true
