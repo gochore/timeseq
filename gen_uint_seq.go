@@ -297,11 +297,20 @@ func (s *UintSeq) Range(interval Interval) *UintSeq {
 	return newUintSeq(slice)
 }
 
-// Slice returns a sub *UintSeq with specified index
+// Slice returns a sub *UintSeq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *UintSeq) Slice(i, j int) *UintSeq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return newUintSeq(slice)
+	if i < 0 {
+		return newUintSeq(sslice[:j])
+	}
+	if j < 0 {
+		return newUintSeq(sslice[i:])
+	}
+	return newUintSeq(sslice[i:j])
 }
 
 // Trim returns a *UintSeq without elements which make fn returns true

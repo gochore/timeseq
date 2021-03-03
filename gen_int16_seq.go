@@ -297,11 +297,20 @@ func (s *Int16Seq) Range(interval Interval) *Int16Seq {
 	return newInt16Seq(slice)
 }
 
-// Slice returns a sub *Int16Seq with specified index
+// Slice returns a sub *Int16Seq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *Int16Seq) Slice(i, j int) *Int16Seq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return newInt16Seq(slice)
+	if i < 0 {
+		return newInt16Seq(sslice[:j])
+	}
+	if j < 0 {
+		return newInt16Seq(sslice[i:])
+	}
+	return newInt16Seq(sslice[i:j])
 }
 
 // Trim returns a *Int16Seq without elements which make fn returns true

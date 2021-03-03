@@ -297,11 +297,20 @@ func (s *Float32Seq) Range(interval Interval) *Float32Seq {
 	return newFloat32Seq(slice)
 }
 
-// Slice returns a sub *Float32Seq with specified index
+// Slice returns a sub *Float32Seq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *Float32Seq) Slice(i, j int) *Float32Seq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return newFloat32Seq(slice)
+	if i < 0 {
+		return newFloat32Seq(sslice[:j])
+	}
+	if j < 0 {
+		return newFloat32Seq(sslice[i:])
+	}
+	return newFloat32Seq(sslice[i:j])
 }
 
 // Trim returns a *Float32Seq without elements which make fn returns true

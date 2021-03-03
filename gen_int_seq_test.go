@@ -701,6 +701,33 @@ func TestIntSeq_Slice(t *testing.T) {
 			},
 			want: data[1:3],
 		},
+		{
+			name: "left negative",
+			data: data,
+			args: args{
+				i: -1,
+				j: 3,
+			},
+			want: data[:3],
+		},
+		{
+			name: "right negative",
+			data: data,
+			args: args{
+				i: 1,
+				j: -3,
+			},
+			want: data[1:],
+		},
+		{
+			name: "all negative",
+			data: data,
+			args: args{
+				i: -1,
+				j: -3,
+			},
+			want: data[:],
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

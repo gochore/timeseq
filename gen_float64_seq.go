@@ -297,11 +297,20 @@ func (s *Float64Seq) Range(interval Interval) *Float64Seq {
 	return newFloat64Seq(slice)
 }
 
-// Slice returns a sub *Float64Seq with specified index
+// Slice returns a sub *Float64Seq with specified index,
+// (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *Float64Seq) Slice(i, j int) *Float64Seq {
+	if i < 0 && j < 0 {
+		return s
+	}
 	sslice := s.getSlice()
-	slice := sslice[i:j]
-	return newFloat64Seq(slice)
+	if i < 0 {
+		return newFloat64Seq(sslice[:j])
+	}
+	if j < 0 {
+		return newFloat64Seq(sslice[i:])
+	}
+	return newFloat64Seq(sslice[i:j])
 }
 
 // Trim returns a *Float64Seq without elements which make fn returns true

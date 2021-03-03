@@ -297,7 +297,7 @@ func (s *Int64Seq) Range(interval Interval) *Int64Seq {
 	return newInt64Seq(slice)
 }
 
-// Slice returns a sub *Int64Seq with specified index
+// Slice returns a sub *Int64Seq with specified index,
 // (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
 func (s *Int64Seq) Slice(i, j int) *Int64Seq {
 	if i < 0 && j < 0 {
