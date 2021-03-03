@@ -297,7 +297,14 @@ func (s *Float64Seq) Range(interval Interval) *Float64Seq {
 	return newFloat64Seq(slice)
 }
 
-// Range returns a *Float64Seq without elements which make fn returns true
+// Slice returns a sub *Float64Seq with specified index
+func (s *Float64Seq) Slice(i, j int) *Float64Seq {
+	sslice := s.getSlice()
+	slice := sslice[i:j]
+	return newFloat64Seq(slice)
+}
+
+// Trim returns a *Float64Seq without elements which make fn returns true
 func (s *Float64Seq) Trim(fn func(i int, v Float64) bool) *Float64Seq {
 	sslice := s.getSlice()
 	if fn == nil || len(sslice) == 0 {

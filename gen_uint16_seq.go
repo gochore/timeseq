@@ -297,7 +297,14 @@ func (s *Uint16Seq) Range(interval Interval) *Uint16Seq {
 	return newUint16Seq(slice)
 }
 
-// Range returns a *Uint16Seq without elements which make fn returns true
+// Slice returns a sub *Uint16Seq with specified index
+func (s *Uint16Seq) Slice(i, j int) *Uint16Seq {
+	sslice := s.getSlice()
+	slice := sslice[i:j]
+	return newUint16Seq(slice)
+}
+
+// Trim returns a *Uint16Seq without elements which make fn returns true
 func (s *Uint16Seq) Trim(fn func(i int, v Uint16) bool) *Uint16Seq {
 	sslice := s.getSlice()
 	if fn == nil || len(sslice) == 0 {

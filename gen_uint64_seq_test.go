@@ -48,6 +48,7 @@ func TestUint64Seq_NilSafe(t *testing.T) {
 	seq.Last()
 	seq.Percentile(0.5)
 	seq.Range(Interval{})
+	seq.Slice(0, 0)
 	seq.Trim(func(i int, v Uint64) bool {
 		return false
 	})
@@ -672,6 +673,40 @@ func TestUint64Seq_Range(t *testing.T) {
 			s := NewUint64Seq(data)
 			if got := s.Range(tt.args.interval).Uint64s(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUint64Seq_Slice(t *testing.T) {
+	data := RandomUint64s(100)
+	Sort(data)
+
+	type args struct {
+		i int
+		j int
+	}
+	tests := []struct {
+		name string
+		data Uint64s
+		args args
+		want Uint64s
+	}{
+		{
+			name: "regular",
+			data: data,
+			args: args{
+				i: 1,
+				j: 3,
+			},
+			want: data[1:3],
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := newUint64Seq(data)
+			if got := s.Slice(tt.args.i, tt.args.j).Uint64s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Slice() = %v, want %v", got, tt.want)
 			}
 		})
 	}

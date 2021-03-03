@@ -48,6 +48,7 @@ func TestInt8Seq_NilSafe(t *testing.T) {
 	seq.Last()
 	seq.Percentile(0.5)
 	seq.Range(Interval{})
+	seq.Slice(0, 0)
 	seq.Trim(func(i int, v Int8) bool {
 		return false
 	})
@@ -672,6 +673,40 @@ func TestInt8Seq_Range(t *testing.T) {
 			s := NewInt8Seq(data)
 			if got := s.Range(tt.args.interval).Int8s(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestInt8Seq_Slice(t *testing.T) {
+	data := RandomInt8s(100)
+	Sort(data)
+
+	type args struct {
+		i int
+		j int
+	}
+	tests := []struct {
+		name string
+		data Int8s
+		args args
+		want Int8s
+	}{
+		{
+			name: "regular",
+			data: data,
+			args: args{
+				i: 1,
+				j: 3,
+			},
+			want: data[1:3],
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := newInt8Seq(data)
+			if got := s.Slice(tt.args.i, tt.args.j).Int8s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Slice() = %v, want %v", got, tt.want)
 			}
 		})
 	}

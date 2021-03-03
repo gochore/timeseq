@@ -297,7 +297,14 @@ func (s *Uint8Seq) Range(interval Interval) *Uint8Seq {
 	return newUint8Seq(slice)
 }
 
-// Range returns a *Uint8Seq without elements which make fn returns true
+// Slice returns a sub *Uint8Seq with specified index
+func (s *Uint8Seq) Slice(i, j int) *Uint8Seq {
+	sslice := s.getSlice()
+	slice := sslice[i:j]
+	return newUint8Seq(slice)
+}
+
+// Trim returns a *Uint8Seq without elements which make fn returns true
 func (s *Uint8Seq) Trim(fn func(i int, v Uint8) bool) *Uint8Seq {
 	sslice := s.getSlice()
 	if fn == nil || len(sslice) == 0 {
