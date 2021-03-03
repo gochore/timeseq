@@ -297,7 +297,14 @@ func (s *Uint64Seq) Range(interval Interval) *Uint64Seq {
 	return newUint64Seq(slice)
 }
 
-// Range returns a *Uint64Seq without elements which make fn returns true
+// Slice returns a sub *Uint64Seq with specified index
+func (s *Uint64Seq) Slice(i, j int) *Uint64Seq {
+	sslice := s.getSlice()
+	slice := sslice[i:j]
+	return newUint64Seq(slice)
+}
+
+// Trim returns a *Uint64Seq without elements which make fn returns true
 func (s *Uint64Seq) Trim(fn func(i int, v Uint64) bool) *Uint64Seq {
 	sslice := s.getSlice()
 	if fn == nil || len(sslice) == 0 {

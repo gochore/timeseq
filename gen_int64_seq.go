@@ -304,7 +304,7 @@ func (s *Int64Seq) Slice(i, j int) *Int64Seq {
 	return newInt64Seq(slice)
 }
 
-// Range returns a *Int64Seq without elements which make fn returns true
+// Trim returns a *Int64Seq without elements which make fn returns true
 func (s *Int64Seq) Trim(fn func(i int, v Int64) bool) *Int64Seq {
 	sslice := s.getSlice()
 	if fn == nil || len(sslice) == 0 {

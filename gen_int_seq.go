@@ -297,7 +297,14 @@ func (s *IntSeq) Range(interval Interval) *IntSeq {
 	return newIntSeq(slice)
 }
 
-// Range returns a *IntSeq without elements which make fn returns true
+// Slice returns a sub *IntSeq with specified index
+func (s *IntSeq) Slice(i, j int) *IntSeq {
+	sslice := s.getSlice()
+	slice := sslice[i:j]
+	return newIntSeq(slice)
+}
+
+// Trim returns a *IntSeq without elements which make fn returns true
 func (s *IntSeq) Trim(fn func(i int, v Int) bool) *IntSeq {
 	sslice := s.getSlice()
 	if fn == nil || len(sslice) == 0 {
