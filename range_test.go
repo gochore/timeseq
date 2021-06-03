@@ -20,20 +20,20 @@ func parseTimeP(s string) *time.Time {
 	return &ret
 }
 
-func TestInterval_Contain(t *testing.T) {
+func TestRange_Contain(t *testing.T) {
 	now := time.Now()
 	type args struct {
 		t time.Time
 	}
 	tests := []struct {
 		name     string
-		interval Interval
+		interval Range
 		args     args
 		want     bool
 	}{
 		{
 			name:     "regular",
-			interval: Interval{}.Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
+			interval: Range{}.Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
 			args: args{
 				t: now,
 			},
@@ -41,7 +41,7 @@ func TestInterval_Contain(t *testing.T) {
 		},
 		{
 			name:     "not contain",
-			interval: Interval{}.Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
+			interval: Range{}.Before(now.Add(time.Hour)).After(now.Add(-time.Hour)),
 			args: args{
 				t: now.Add(2 * time.Hour),
 			},
@@ -49,7 +49,7 @@ func TestInterval_Contain(t *testing.T) {
 		},
 		{
 			name:     "AfterOrEqual",
-			interval: Interval{}.AfterOrEqual(now),
+			interval: Range{}.AfterOrEqual(now),
 			args: args{
 				t: now,
 			},
@@ -57,7 +57,7 @@ func TestInterval_Contain(t *testing.T) {
 		},
 		{
 			name:     "After",
-			interval: Interval{}.After(now),
+			interval: Range{}.After(now),
 			args: args{
 				t: now,
 			},
@@ -65,7 +65,7 @@ func TestInterval_Contain(t *testing.T) {
 		},
 		{
 			name:     "BeforeOrEqual",
-			interval: Interval{}.BeforeOrEqual(now),
+			interval: Range{}.BeforeOrEqual(now),
 			args: args{
 				t: now,
 			},
@@ -73,7 +73,7 @@ func TestInterval_Contain(t *testing.T) {
 		},
 		{
 			name:     "Before",
-			interval: Interval{}.Before(now),
+			interval: Range{}.Before(now),
 			args: args{
 				t: now,
 			},
@@ -153,37 +153,37 @@ func TestInterval_Contain(t *testing.T) {
 	}
 }
 
-func TestInterval_String(t *testing.T) {
+func TestRange_String(t *testing.T) {
 	now := time.Now()
 
 	tests := []struct {
 		name     string
-		interval Interval
+		interval Range
 		want     string
 	}{
 		{
 			name:     "regular",
-			interval: Interval{}.BeginAt(now).EndAt(now.Add(time.Hour)),
+			interval: Range{}.BeginAt(now).EndAt(now.Add(time.Hour)),
 			want:     fmt.Sprintf("%v~%v", now.Format(time.RFC3339), now.Add(time.Hour).Format(time.RFC3339)),
 		},
 		{
 			name:     "miss begin",
-			interval: Interval{}.EndAt(now),
+			interval: Range{}.EndAt(now),
 			want:     fmt.Sprintf("nil~%v", now.Format(time.RFC3339)),
 		},
 		{
 			name:     "miss end",
-			interval: Interval{}.BeginAt(now),
+			interval: Range{}.BeginAt(now),
 			want:     fmt.Sprintf("%v~nil", now.Format(time.RFC3339)),
 		},
 		{
 			name:     "miss all",
-			interval: Interval{},
+			interval: Range{},
 			want:     "nil~nil",
 		},
 		{
 			name:     "after",
-			interval: Interval{}.After(now),
+			interval: Range{}.After(now),
 			want:     fmt.Sprintf("%v~nil", now.Format(time.RFC3339)),
 		},
 	}
@@ -196,7 +196,7 @@ func TestInterval_String(t *testing.T) {
 	}
 }
 
-func TestInterval_Format(t *testing.T) {
+func TestRange_Format(t *testing.T) {
 	now := time.Now()
 
 	type args struct {
@@ -204,13 +204,13 @@ func TestInterval_Format(t *testing.T) {
 	}
 	tests := []struct {
 		name     string
-		interval Interval
+		interval Range
 		args     args
 		want     string
 	}{
 		{
 			name:     "regular",
-			interval: Interval{}.BeginAt(now).EndAt(now.Add(time.Hour)),
+			interval: Range{}.BeginAt(now).EndAt(now.Add(time.Hour)),
 			args: args{
 				layout: time.RFC3339,
 			},
@@ -218,7 +218,7 @@ func TestInterval_Format(t *testing.T) {
 		},
 		{
 			name:     "nano",
-			interval: Interval{}.After(now),
+			interval: Range{}.After(now),
 			args: args{
 				layout: time.RFC3339Nano,
 			},
@@ -234,7 +234,7 @@ func TestInterval_Format(t *testing.T) {
 	}
 }
 
-func TestInterval_Truncate(t *testing.T) {
+func TestRange_Truncate(t *testing.T) {
 	type fields struct {
 		NotBefore *time.Time
 		NotAfter  *time.Time
@@ -246,7 +246,7 @@ func TestInterval_Truncate(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   Interval
+		want   Range
 	}{
 		{
 			name: "regular",
@@ -257,7 +257,7 @@ func TestInterval_Truncate(t *testing.T) {
 			args: args{
 				d: time.Minute,
 			},
-			want: Interval{
+			want: Range{
 				NotBefore: parseTimeP("2021-02-02T20:35:00+08:00"),
 				NotAfter:  parseTimeP("2021-02-02T21:34:00+08:00"),
 			},
@@ -271,7 +271,7 @@ func TestInterval_Truncate(t *testing.T) {
 			args: args{
 				d: time.Minute,
 			},
-			want: Interval{
+			want: Range{
 				NotBefore: parseTimeP("2021-02-02T20:35:00+08:00"),
 				NotAfter:  parseTimeP("2021-02-02T21:34:00+08:00"),
 			},
@@ -285,7 +285,7 @@ func TestInterval_Truncate(t *testing.T) {
 			args: args{
 				d: time.Minute,
 			},
-			want: Interval{
+			want: Range{
 				NotBefore: nil,
 				NotAfter:  nil,
 			},
@@ -293,7 +293,7 @@ func TestInterval_Truncate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			i := Interval{
+			i := Range{
 				NotBefore: tt.fields.NotBefore,
 				NotAfter:  tt.fields.NotAfter,
 			}
@@ -304,7 +304,7 @@ func TestInterval_Truncate(t *testing.T) {
 	}
 }
 
-func TestInterval_Duration(t *testing.T) {
+func TestRange_Duration(t *testing.T) {
 	type fields struct {
 		NotBefore *time.Time
 		NotAfter  *time.Time
@@ -341,7 +341,7 @@ func TestInterval_Duration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			i := Interval{
+			i := Range{
 				NotBefore: tt.fields.NotBefore,
 				NotAfter:  tt.fields.NotAfter,
 			}

@@ -2,14 +2,14 @@ package timeseq
 
 import "time"
 
-// Interval indicates a continuous time range
-type Interval struct {
+// Range indicates a continuous time range
+type Range struct {
 	NotBefore *time.Time
 	NotAfter  *time.Time
 }
 
-// Contain returns if time t is in the interval
-func (i Interval) Contain(t time.Time) bool {
+// Contain returns if time t is in the range
+func (i Range) Contain(t time.Time) bool {
 	if i.NotAfter != nil && t.After(*i.NotAfter) {
 		return false
 	}
@@ -19,13 +19,13 @@ func (i Interval) Contain(t time.Time) bool {
 	return true
 }
 
-// String returns the interval formatted using the RFC3339 format string
-func (i *Interval) String() string {
+// String returns the range formatted using the RFC3339 format string
+func (i *Range) String() string {
 	return i.Format(time.RFC3339)
 }
 
 // Format returns a textual representation of the time value formatted according to layout
-func (i *Interval) Format(layout string) string {
+func (i *Range) Format(layout string) string {
 	notBefore, notAfter := "nil", "nil"
 	if i.NotBefore != nil {
 		notBefore = i.NotBefore.Format(layout)
@@ -37,51 +37,51 @@ func (i *Interval) Format(layout string) string {
 }
 
 // BeginAt is alias of AfterOrEqual
-func (i Interval) BeginAt(t time.Time) Interval {
+func (i Range) BeginAt(t time.Time) Range {
 	return i.AfterOrEqual(t)
 }
 
 // EndAt is alias of BeforeOrEqual
-func (i Interval) EndAt(t time.Time) Interval {
+func (i Range) EndAt(t time.Time) Range {
 	return i.BeforeOrEqual(t)
 }
 
-// BeforeOrEqual returns a new Interval which not before t
-func (i Interval) BeforeOrEqual(t time.Time) Interval {
-	return Interval{
+// BeforeOrEqual returns a new Range which not before t
+func (i Range) BeforeOrEqual(t time.Time) Range {
+	return Range{
 		NotBefore: i.NotBefore,
 		NotAfter:  &t,
 	}
 }
 
-// AfterOrEqual returns a new Interval which not after t
-func (i Interval) AfterOrEqual(t time.Time) Interval {
-	return Interval{
+// AfterOrEqual returns a new Range which not after t
+func (i Range) AfterOrEqual(t time.Time) Range {
+	return Range{
 		NotBefore: &t,
 		NotAfter:  i.NotAfter,
 	}
 }
 
-// Before returns a new Interval which before t
-func (i Interval) Before(t time.Time) Interval {
+// Before returns a new Range which before t
+func (i Range) Before(t time.Time) Range {
 	t = t.Add(-1)
-	return Interval{
+	return Range{
 		NotBefore: i.NotBefore,
 		NotAfter:  &t,
 	}
 }
 
-// After returns a new Interval which after t
-func (i Interval) After(t time.Time) Interval {
+// After returns a new Range which after t
+func (i Range) After(t time.Time) Range {
 	t = t.Add(1)
-	return Interval{
+	return Range{
 		NotBefore: &t,
 		NotAfter:  i.NotAfter,
 	}
 }
 
-// Truncate returns the result of rounding interval down to a multiple of d (since the zero time).
-func (i Interval) Truncate(d time.Duration) Interval {
+// Truncate returns the result of rounding range down to a multiple of d (since the zero time).
+func (i Range) Truncate(d time.Duration) Range {
 	if i.NotBefore != nil {
 		t := (*i.NotBefore).Truncate(d)
 		if t.Before(*i.NotBefore) {
@@ -99,7 +99,7 @@ func (i Interval) Truncate(d time.Duration) Interval {
 // Duration returns the duration NotAfter - NotBefore,
 // returns 0 if NotAfter is before or equal NotBefore,
 // returns -1 if NotAfter or NotBefore if nil.
-func (i Interval) Duration() time.Duration {
+func (i Range) Duration() time.Duration {
 	if i.NotBefore == nil || i.NotAfter == nil {
 		return -1
 	}
@@ -110,41 +110,41 @@ func (i Interval) Duration() time.Duration {
 }
 
 // BeginAt is alias of AfterOrEqual
-func BeginAt(t time.Time) Interval {
+func BeginAt(t time.Time) Range {
 	return AfterOrEqual(t)
 }
 
 // EndAt is alias of BeforeOrEqual
-func EndAt(t time.Time) Interval {
+func EndAt(t time.Time) Range {
 	return BeforeOrEqual(t)
 }
 
-// BeforeOrEqual returns a new Interval which not before t
-func BeforeOrEqual(t time.Time) Interval {
-	return Interval{
+// BeforeOrEqual returns a new Range which not before t
+func BeforeOrEqual(t time.Time) Range {
+	return Range{
 		NotAfter: &t,
 	}
 }
 
-// AfterOrEqual returns a new Interval which not after t
-func AfterOrEqual(t time.Time) Interval {
-	return Interval{
+// AfterOrEqual returns a new Range which not after t
+func AfterOrEqual(t time.Time) Range {
+	return Range{
 		NotBefore: &t,
 	}
 }
 
-// Before returns a new Interval which before t
-func Before(t time.Time) Interval {
+// Before returns a new Range which before t
+func Before(t time.Time) Range {
 	t = t.Add(-1)
-	return Interval{
+	return Range{
 		NotAfter: &t,
 	}
 }
 
-// After returns a new Interval which after t
-func After(t time.Time) Interval {
+// After returns a new Range which after t
+func After(t time.Time) Range {
 	t = t.Add(1)
-	return Interval{
+	return Range{
 		NotBefore: &t,
 	}
 }

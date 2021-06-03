@@ -1,6 +1,6 @@
 # timeseq
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/gochore/timeseq/v2.svg)](https://pkg.go.dev/github.com/gochore/timeseq/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gochore/timeseq/v3.svg)](https://pkg.go.dev/github.com/gochore/timeseq/v3)
 [![Build Status](https://travis-ci.com/gochore/timeseq.svg?branch=master)](https://travis-ci.com/gochore/timeseq)
 [![codecov](https://codecov.io/gh/gochore/timeseq/branch/master/graph/badge.svg)](https://codecov.io/gh/gochore/timeseq)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gochore/timeseq)](https://goreportcard.com/report/github.com/gochore/timeseq)
@@ -17,12 +17,12 @@ This package defines some simple types like `Int64Seq` `Float64Seq` for time ser
 Requires a Go version with [modules](https://github.com/golang/go/wiki/Modules) support.
 
 ```bash
-go get github.com/gochore/timeseq/v2
+go get github.com/gochore/timeseq/v3
 ```
 
 ## Example
 
-See more in [doc](https://pkg.go.dev/github.com/gochore/timeseq/v2) or [wiki](https://github.com/gochore/timeseq/wiki).
+See more in [doc](https://pkg.go.dev/github.com/gochore/timeseq/v3) or [wiki](https://github.com/gochore/timeseq/wiki).
 
 ```go
 package main
@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gochore/timeseq/v2"
+	"github.com/gochore/timeseq/v3"
 )
 
 func main() {
