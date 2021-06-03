@@ -288,10 +288,10 @@ func (s *{{.Name}}Seq) Percentile(pct float64) {{.Name}} {
 	return sslice[s.valueOrder[i]]
 }
 
-// Range returns a sub *{{.Name}}Seq with specified interval
-func (s *{{.Name}}Seq) Range(interval Interval) *{{.Name}}Seq {
+// Truncate returns a sub *{{.Name}}Seq with specified interval
+func (s *{{.Name}}Seq) Truncate(interval Interval) *{{.Name}}Seq {
 	sslice := s.getSlice()
-	slice := Range(sslice, interval).({{.Name}}s)
+	slice := Truncate(sslice, interval).({{.Name}}s)
 	return new{{.Name}}Seq(slice)
 }
 

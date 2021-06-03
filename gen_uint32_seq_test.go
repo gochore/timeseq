@@ -47,7 +47,7 @@ func TestUint32Seq_NilSafe(t *testing.T) {
 	seq.First()
 	seq.Last()
 	seq.Percentile(0.5)
-	seq.Range(Interval{})
+	seq.Truncate(Interval{})
 	seq.Slice(0, 0)
 	seq.Trim(func(i int, v Uint32) bool {
 		return false
@@ -630,7 +630,7 @@ func TestUint32Seq_Percentile(t *testing.T) {
 	}
 }
 
-func TestUint32Seq_Range(t *testing.T) {
+func TestUint32Seq_Truncate(t *testing.T) {
 	data := RandomUint32s(100)
 	Sort(data)
 
@@ -671,8 +671,8 @@ func TestUint32Seq_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUint32Seq(data)
-			if got := s.Range(tt.args.interval).Uint32s(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Range() = %v, want %v", got, tt.want)
+			if got := s.Truncate(tt.args.interval).Uint32s(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Truncate() = %v, want %v", got, tt.want)
 			}
 		})
 	}

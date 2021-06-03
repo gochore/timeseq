@@ -36,8 +36,8 @@ func IsSorted(slice Interface) bool {
 	return sort.IsSorted(sortable{Interface: slice})
 }
 
-// Range return a sub slice of given sorted slice according to the interval
-func Range(slice Interface, interval Interval) Interface {
+// Truncate return a sub slice of given sorted slice according to the interval
+func Truncate(slice Interface, interval Interval) Interface {
 	i := 0
 	if interval.NotBefore != nil {
 		i = sort.Search(slice.Len(), func(i int) bool {

@@ -47,7 +47,7 @@ func TestUintSeq_NilSafe(t *testing.T) {
 	seq.First()
 	seq.Last()
 	seq.Percentile(0.5)
-	seq.Range(Interval{})
+	seq.Truncate(Interval{})
 	seq.Slice(0, 0)
 	seq.Trim(func(i int, v Uint) bool {
 		return false
@@ -630,7 +630,7 @@ func TestUintSeq_Percentile(t *testing.T) {
 	}
 }
 
-func TestUintSeq_Range(t *testing.T) {
+func TestUintSeq_Truncate(t *testing.T) {
 	data := RandomUints(100)
 	Sort(data)
 
@@ -671,8 +671,8 @@ func TestUintSeq_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUintSeq(data)
-			if got := s.Range(tt.args.interval).Uints(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Range() = %v, want %v", got, tt.want)
+			if got := s.Truncate(tt.args.interval).Uints(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Truncate() = %v, want %v", got, tt.want)
 			}
 		})
 	}

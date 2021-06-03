@@ -290,10 +290,10 @@ func (s *Int8Seq) Percentile(pct float64) Int8 {
 	return sslice[s.valueOrder[i]]
 }
 
-// Range returns a sub *Int8Seq with specified interval
-func (s *Int8Seq) Range(interval Interval) *Int8Seq {
+// Truncate returns a sub *Int8Seq with specified interval
+func (s *Int8Seq) Truncate(interval Interval) *Int8Seq {
 	sslice := s.getSlice()
-	slice := Range(sslice, interval).(Int8s)
+	slice := Truncate(sslice, interval).(Int8s)
 	return newInt8Seq(slice)
 }
 

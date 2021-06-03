@@ -290,10 +290,10 @@ func (s *UintSeq) Percentile(pct float64) Uint {
 	return sslice[s.valueOrder[i]]
 }
 
-// Range returns a sub *UintSeq with specified interval
-func (s *UintSeq) Range(interval Interval) *UintSeq {
+// Truncate returns a sub *UintSeq with specified interval
+func (s *UintSeq) Truncate(interval Interval) *UintSeq {
 	sslice := s.getSlice()
-	slice := Range(sslice, interval).(Uints)
+	slice := Truncate(sslice, interval).(Uints)
 	return newUintSeq(slice)
 }
 
