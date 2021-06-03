@@ -290,10 +290,10 @@ func (s *Int32Seq) Percentile(pct float64) Int32 {
 	return sslice[s.valueOrder[i]]
 }
 
-// Truncate returns a sub *Int32Seq with specified interval
-func (s *Int32Seq) Truncate(interval Interval) *Int32Seq {
+// Truncate returns a sub *Int32Seq with specified range
+func (s *Int32Seq) Truncate(rg Range) *Int32Seq {
 	sslice := s.getSlice()
-	slice := Truncate(sslice, interval).(Int32s)
+	slice := Truncate(sslice, rg).(Int32s)
 	return newInt32Seq(slice)
 }
 
@@ -401,7 +401,7 @@ func (s *Int32Seq) Merge(fn func(t time.Time, v1, v2 *int32) *int32, seq *Int32S
 }
 
 // Aggregate returns a aggregated *Int32Seq according to the specified rule
-func (s *Int32Seq) Aggregate(fn func(t time.Time, slice Int32s) *int32, duration time.Duration, interval Interval) *Int32Seq {
+func (s *Int32Seq) Aggregate(fn func(t time.Time, slice Int32s) *int32, duration time.Duration, rg Range) *Int32Seq {
 	if fn == nil {
 		return s
 	}
@@ -413,7 +413,7 @@ func (s *Int32Seq) Aggregate(fn func(t time.Time, slice Int32s) *int32, duration
 	if duration <= 0 {
 		for i := 0; i < s.Len(); {
 			t := sslice[i].Time
-			if !interval.Contain(t) {
+			if !rg.Contain(t) {
 				i++
 				continue
 			}
@@ -433,7 +433,7 @@ func (s *Int32Seq) Aggregate(fn func(t time.Time, slice Int32s) *int32, duration
 		return newInt32Seq(ret)
 	}
 
-	if len(sslice) == 0 && interval.Duration() < 0 {
+	if len(sslice) == 0 && rg.Duration() < 0 {
 		return s
 	}
 
@@ -441,9 +441,9 @@ func (s *Int32Seq) Aggregate(fn func(t time.Time, slice Int32s) *int32, duration
 	if len(sslice) > 0 {
 		begin = sslice[0].Time.Truncate(duration)
 	}
-	if interval.NotBefore != nil {
-		begin = (*interval.NotBefore).Truncate(duration)
-		if begin.Before(*interval.NotBefore) {
+	if rg.NotBefore != nil {
+		begin = (*rg.NotBefore).Truncate(duration)
+		if begin.Before(*rg.NotBefore) {
 			begin = begin.Add(duration)
 		}
 	}
@@ -452,8 +452,8 @@ func (s *Int32Seq) Aggregate(fn func(t time.Time, slice Int32s) *int32, duration
 	if len(sslice) > 0 {
 		end = sslice[len(sslice)-1].Time.Truncate(duration)
 	}
-	if interval.NotAfter != nil {
-		end = (*interval.NotAfter).Truncate(duration)
+	if rg.NotAfter != nil {
+		end = (*rg.NotAfter).Truncate(duration)
 	}
 
 	for t, i := begin, 0; !t.After(end); t = t.Add(duration) {

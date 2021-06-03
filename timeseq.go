@@ -36,20 +36,20 @@ func IsSorted(slice Interface) bool {
 	return sort.IsSorted(sortable{Interface: slice})
 }
 
-// Truncate return a sub slice of given sorted slice according to the interval
-func Truncate(slice Interface, interval Interval) Interface {
+// Truncate return a sub slice of given sorted slice according to the range
+func Truncate(slice Interface, rg Range) Interface {
 	i := 0
-	if interval.NotBefore != nil {
+	if rg.NotBefore != nil {
 		i = sort.Search(slice.Len(), func(i int) bool {
-			return !slice.Time(i).Before(*interval.NotBefore)
+			return !slice.Time(i).Before(*rg.NotBefore)
 		})
 	}
 	j := slice.Len()
-	if interval.NotAfter != nil {
+	if rg.NotAfter != nil {
 		j = sort.Search(slice.Len(), func(j int) bool {
-			return !slice.Time(j).Before(*interval.NotAfter)
+			return !slice.Time(j).Before(*rg.NotAfter)
 		})
-		if j < slice.Len() && slice.Time(j).Equal(*interval.NotAfter) {
+		if j < slice.Len() && slice.Time(j).Equal(*rg.NotAfter) {
 			j++
 		}
 	}

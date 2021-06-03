@@ -47,7 +47,7 @@ func TestUintSeq_NilSafe(t *testing.T) {
 	seq.First()
 	seq.Last()
 	seq.Percentile(0.5)
-	seq.Truncate(Interval{})
+	seq.Truncate(Range{})
 	seq.Slice(0, 0)
 	seq.Trim(func(i int, v Uint) bool {
 		return false
@@ -57,7 +57,7 @@ func TestUintSeq_NilSafe(t *testing.T) {
 	}, seq)
 	seq.Aggregate(func(t time.Time, slice Uints) *uint {
 		return nil
-	}, time.Hour, Interval{})
+	}, time.Hour, Range{})
 }
 
 func TestUint_IsZero(t *testing.T) {
@@ -635,7 +635,7 @@ func TestUintSeq_Truncate(t *testing.T) {
 	Sort(data)
 
 	type args struct {
-		interval Interval
+		rg Range
 	}
 	tests := []struct {
 		name string
@@ -647,7 +647,7 @@ func TestUintSeq_Truncate(t *testing.T) {
 			name: "regular",
 			data: data,
 			args: args{
-				interval: AfterOrEqual(data[10].Time).BeforeOrEqual(data[89].Time),
+				rg: AfterOrEqual(data[10].Time).BeforeOrEqual(data[89].Time),
 			},
 			want: data[10:90],
 		},
@@ -655,7 +655,7 @@ func TestUintSeq_Truncate(t *testing.T) {
 			name: "nil NotBefore",
 			data: data,
 			args: args{
-				interval: BeforeOrEqual(data[89].Time),
+				rg: BeforeOrEqual(data[89].Time),
 			},
 			want: data[:90],
 		},
@@ -663,7 +663,7 @@ func TestUintSeq_Truncate(t *testing.T) {
 			name: "nil NotAfter",
 			data: data,
 			args: args{
-				interval: AfterOrEqual(data[10].Time),
+				rg: AfterOrEqual(data[10].Time),
 			},
 			want: data[10:],
 		},
@@ -671,7 +671,7 @@ func TestUintSeq_Truncate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUintSeq(data)
-			if got := s.Truncate(tt.args.interval).Uints(); !reflect.DeepEqual(got, tt.want) {
+			if got := s.Truncate(tt.args.rg).Uints(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Truncate() = %v, want %v", got, tt.want)
 			}
 		})
@@ -879,7 +879,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 	type args struct {
 		fn       func(t time.Time, slice Uints) *uint
 		duration time.Duration
-		interval Interval
+		rg       Range
 	}
 	tests := []struct {
 		name  string
@@ -903,7 +903,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: time.Hour,
-				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+				rg:       BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
 			want: Uints{
 				{Time: parseTime("2021-02-08T17:00:00+08:00"), Value: 0},
@@ -925,7 +925,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 			args: args{
 				fn:       nil,
 				duration: time.Hour,
-				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+				rg:       BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
 			want: Uints{
 				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
@@ -949,7 +949,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: 0,
-				interval: BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+				rg:       BeginAt(parseTime("2021-02-08T17:00:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
 			want: Uints{
 				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
@@ -958,7 +958,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 			},
 		},
 		{
-			name: "shorter interval with zero duraion",
+			name: "shorter rg with zero duraion",
 			slice: Uints{
 				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
 				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
@@ -973,7 +973,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: 0,
-				interval: BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+				rg:       BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
 			want: Uints{
 				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
@@ -981,7 +981,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 			},
 		},
 		{
-			name: "shorter interval with non zero duraion",
+			name: "shorter rg with non zero duraion",
 			slice: Uints{
 				{Time: parseTime("2021-02-08T18:08:00+08:00"), Value: 1},
 				{Time: parseTime("2021-02-08T19:08:04+08:00"), Value: 2},
@@ -996,7 +996,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: time.Hour,
-				interval: BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+				rg:       BeginAt(parseTime("2021-02-08T18:30:00+08:00")).EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
 			want: Uints{
 				{Time: parseTime("2021-02-08T19:00:00+08:00"), Value: 5},
@@ -1022,7 +1022,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: time.Hour,
-				interval: EndAt(parseTime("2021-02-08T23:59:59+08:00")),
+				rg:       EndAt(parseTime("2021-02-08T23:59:59+08:00")),
 			},
 			want: Uints{
 				{Time: parseTime("2021-02-08T18:00:00+08:00"), Value: 1},
@@ -1045,7 +1045,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 					return &ret
 				},
 				duration: time.Hour,
-				interval: Interval{},
+				rg:       Range{},
 			},
 			want: Uints{},
 		},
@@ -1053,7 +1053,7 @@ func TestUintSeq_Aggregate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUintSeq(tt.slice)
-			if got := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.interval).Uints(); !reflect.DeepEqual(got, tt.want) {
+			if got := s.Aggregate(tt.args.fn, tt.args.duration, tt.args.rg).Uints(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Aggregate() got = %v, want %v", len(got), len(tt.want))
 				for i, v := range got {
 					t.Errorf("got  %v %v", i, v)
