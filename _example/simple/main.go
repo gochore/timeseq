@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gochore/timeseq/v2"
+	"github.com/gochore/timeseq/v3"
 )
 
 func main() {
