@@ -47,6 +47,15 @@ func WrapSeq[T Number](points []Point[T]) *Seq[T] {
 	}
 }
 
+// ConvertSeq converts a slice of any type to Seq using the convert function
+func ConvertSeq[T Number, S []P, P any](s S, convert func(p P) Point[T]) *Seq[T] {
+	points := make([]Point[T], 0, len(s))
+	for _, v := range s {
+		points = append(points, convert(v))
+	}
+	return WrapSeq(points)
+}
+
 func compareItems[T Number](a, b Point[T]) int {
 	if a.Time.Before(b.Time) {
 		return -1
