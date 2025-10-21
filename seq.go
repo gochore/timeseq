@@ -7,7 +7,11 @@ import (
 	"time"
 )
 
-type Point[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64] struct {
+type Number interface {
+	~float32 | ~float64 | ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+}
+
+type Point[T Number] struct {
 	Time  time.Time
 	Value T
 }
@@ -17,7 +21,7 @@ func (i Point[T]) IsZero() bool {
 	return i.Time.IsZero() && i.Value == zero
 }
 
-type Seq[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64] struct {
+type Seq[T Number] struct {
 	points []Point[T]
 
 	indexOnce  sync.Once
@@ -27,14 +31,14 @@ type Seq[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8
 }
 
 // NewSeq returns Seq with copied points inside
-func NewSeq[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](points []Point[T]) *Seq[T] {
+func NewSeq[T Number](points []Point[T]) *Seq[T] {
 	temp := make([]Point[T], len(points))
 	copy(temp, points)
 	return WrapSeq(temp)
 }
 
 // WrapSeq returns Seq with origin points inside
-func WrapSeq[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](points []Point[T]) *Seq[T] {
+func WrapSeq[T Number](points []Point[T]) *Seq[T] {
 	if !slices.IsSortedFunc(points, compareItems[T]) {
 		slices.SortStableFunc(points, compareItems[T])
 	}
@@ -43,7 +47,7 @@ func WrapSeq[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | u
 	}
 }
 
-func compareItems[T float32 | float64 | int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64](a, b Point[T]) int {
+func compareItems[T Number](a, b Point[T]) int {
 	if a.Time.Before(b.Time) {
 		return -1
 	}
@@ -76,8 +80,8 @@ func (s *Seq[T]) buildIndex() {
 	})
 }
 
-// Slice returns a replica of inside points
-func (s *Seq[T]) Slice() []Point[T] {
+// Points returns a replica of inside points
+func (s *Seq[T]) Points() []Point[T] {
 	ret := make([]Point[T], len(s.points))
 	copy(ret, s.points)
 	return ret
@@ -174,46 +178,40 @@ func (s *Seq[T]) Max() Point[T] {
 }
 
 // Min returns the point with min value, returns zero if empty
-func (s *Float32Seq) Min() Float32 {
-	var min Float32
-	found := false
-	spoints := s.getSlice()
-	for _, v := range spoints {
-		if !found {
-			min = v
-			found = true
-		} else if v.Value < min.Value {
-			min = v
+func (s *Seq[T]) Min() Point[T] {
+	var ret Point[T]
+	for _, v := range s.points {
+		if ret.IsZero() {
+			ret = v
+		} else if v.Value < ret.Value {
+			ret = v
 		}
 	}
-	return min
+	return ret
 }
 
 // First returns the first point, returns zero if empty
-func (s *Float32Seq) First() Float32 {
-	spoints := s.getSlice()
-	if len(spoints) == 0 {
-		return Float32{}
+func (s *Seq[T]) First() Point[T] {
+	if len(s.points) == 0 {
+		return Point[T]{}
 	}
-	return spoints[0]
+	return s.points[0]
 }
 
 // Last returns the last point, returns zero if empty
-func (s *Float32Seq) Last() Float32 {
-	spoints := s.getSlice()
-	if len(spoints) == 0 {
-		return Float32{}
+func (s *Seq[T]) Last() Point[T] {
+	if len(s.points) == 0 {
+		return Point[T]{}
 	}
-	return spoints[len(spoints)-1]
+	return s.points[len(s.points)-1]
 }
 
 // Percentile returns the point matched with percentile pct, returns zero if empty,
 // the pct's valid range is be [0, 1], it will be treated as 1 if greater than 1, as 0 if smaller than 0
-func (s *Float32Seq) Percentile(pct float64) Float32 {
+func (s *Seq[T]) Percentile(pct float64) Point[T] {
 	s.buildIndex()
-	spoints := s.getSlice()
-	if len(spoints) == 0 {
-		return Float32{}
+	if len(s.points) == 0 {
+		return Point[T]{}
 	}
 	if pct > 1 {
 		pct = 1
@@ -221,199 +219,165 @@ func (s *Float32Seq) Percentile(pct float64) Float32 {
 	if pct < 0 {
 		pct = 0
 	}
-	i := int(float64(len(spoints))*pct - 1)
+	i := int(float64(len(s.points))*pct - 1)
 	if i < 0 {
 		i = 0
 	}
-	return spoints[s.valueOrder[i]]
+	return s.points[s.valueOrder[i]]
 }
 
-// Range returns a sub *Float32Seq with specified interval
-func (s *Float32Seq) Range(interval Interval) *Float32Seq {
-	spoints := s.getSlice()
-	points := Range(spoints, interval).(Float32s)
-	return newFloat32Seq(points)
+// Range returns a sub *Seq with specified interval
+func (s *Seq[T]) Range(interval Interval) *Seq[T] {
+	i := 0
+	if interval.NotBefore != nil {
+		i, _ = slices.BinarySearchFunc(s.points, Point[T]{Time: *interval.NotBefore}, func(a, b Point[T]) int {
+			return compareItems[T](a, b)
+		})
+	}
+	j := len(s.points)
+	if interval.NotAfter != nil {
+		j, _ = slices.BinarySearchFunc(s.points, Point[T]{Time: *interval.NotAfter}, func(a, b Point[T]) int {
+			return compareItems[T](a, b)
+		})
+
+		if j < len(s.points) && s.points[j].Time.Equal(*interval.NotAfter) {
+			j++
+		}
+	}
+	return &Seq[T]{
+		points: s.points[i:j],
+	}
 }
 
-// Slice returns a sub *Float32Seq with specified index,
+// Slice returns a sub Seq with specified index,
 // (1, 2) means [1:2], (-1, 2) means [:2], (-1, -1) means [:]
-func (s *Float32Seq) Slice(i, j int) *Float32Seq {
+func (s *Seq[T]) Slice(i, j int) *Seq[T] {
 	if i < 0 && j < 0 {
 		return s
 	}
-	spoints := s.getSlice()
+	points := s.points
 	if i < 0 {
-		return newFloat32Seq(spoints[:j])
+		points = points[:j]
+	} else if j < 0 {
+		points = points[i:]
+	} else {
+		points = points[i:j]
 	}
-	if j < 0 {
-		return newFloat32Seq(spoints[i:])
+	return &Seq[T]{
+		points: points,
 	}
-	return newFloat32Seq(spoints[i:j])
 }
 
-// Trim returns a *Float32Seq without points which make fn returns true
-func (s *Float32Seq) Trim(fn func(i int, v Float32) bool) *Float32Seq {
-	spoints := s.getSlice()
-	if fn == nil || len(spoints) == 0 {
-		return s
-	}
-
-	removeM := map[int]struct{}{}
-	for i, v := range spoints {
+// Filter returns a Seq with points which make fn returns true
+func (s *Seq[T]) Filter(fn func(i int, v Point[T]) bool) *Seq[T] {
+	points := make([]Point[T], 0, len(s.points))
+	for i, v := range s.points {
 		if fn(i, v) {
-			removeM[i] = struct{}{}
+			points = append(points, v)
 		}
 	}
-	if len(removeM) == 0 {
-		return s
+	return &Seq[T]{
+		points: points,
 	}
-
-	points := make(Float32s, 0, len(spoints)-len(removeM))
-	for i, v := range spoints {
-		if _, ok := removeM[i]; ok {
-			continue
-		}
-		points = append(points, v)
-	}
-
-	return newFloat32Seq(points)
 }
 
-// Merge returns a new *Float32Seq with merged data according to the specified rule
-func (s *Float32Seq) Merge(fn func(t time.Time, v1, v2 *float32) *float32, seq *Float32Seq) *Float32Seq {
-	if fn == nil {
-		return s
-	}
+// Merge merges two Seq into a new Seq according to the specified rule
+func Merge[T Number](s1, s2 *Seq[T], fn func(t time.Time, v1, v2 *T) *T) *Seq[T] {
+	ret := make([]Point[T], 0, max(len(s1.points), len(s2.points)))
 
-	var ret Float32s
-
-	points1 := s.getSlice()
-	var points2 Float32s
-	if seq != nil {
-		points2 = seq.getSlice()
-	}
-
-	for i1, i2 := 0, 0; i1 < len(points1) || i2 < len(points2); {
+	for i1, i2 := 0, 0; i1 < len(s1.points) || i2 < len(s2.points); {
 		var (
 			t time.Time
-			v *float32
+			v *T
 		)
 		switch {
-		case i1 == len(points1):
-			t = points2[i2].Time
-			v2 := points2[i2].Value
+		case i1 == len(s1.points) || s1.points[i1].Time.After(s2.points[i2].Time):
+			t = s2.points[i2].Time
+			v2 := s2.points[i2].Value
 			v = fn(t, nil, &v2)
 			i2++
-		case i2 == len(points2):
-			t = points1[i1].Time
-			v1 := points1[i1].Value
+		case i2 == len(s2.points) || s1.points[i1].Time.Before(s2.points[i2].Time):
+			t = s1.points[i1].Time
+			v1 := s1.points[i1].Value
 			v = fn(t, &v1, nil)
 			i1++
-		case points1[i1].Time.Equal(points2[i2].Time):
-			t = points1[i1].Time
-			v1 := points1[i1].Value
-			v2 := points2[i2].Value
+		case s1.points[i1].Time.Equal(s2.points[i2].Time):
+			t = s1.points[i1].Time
+			v1 := s1.points[i1].Value
+			v2 := s2.points[i2].Value
 			v = fn(t, &v1, &v2)
 			i1++
 			i2++
-		case points1[i1].Time.Before(points2[i2].Time):
-			t = points1[i1].Time
-			v1 := points1[i1].Value
-			v = fn(t, &v1, nil)
-			i1++
-		case points1[i1].Time.After(points2[i2].Time):
-			t = points2[i2].Time
-			v2 := points2[i2].Value
-			v = fn(t, nil, &v2)
-			i2++
 		}
 		if v != nil {
-			ret = append(ret, Float32{
+			ret = append(ret, Point[T]{
 				Time:  t,
 				Value: *v,
 			})
 		}
 	}
 
-	return newFloat32Seq(ret)
+	return &Seq[T]{
+		points: ret,
+	}
 }
 
-// Aggregate returns a aggregated *Float32Seq according to the specified rule
-func (s *Float32Seq) Aggregate(fn func(t time.Time, points Float32s) *float32, duration time.Duration, interval Interval) *Float32Seq {
-	if fn == nil {
-		return s
-	}
+// Aggregate returns an aggregated Seq according to the specified rule
+func (s *Seq[T]) Aggregate(fn func(t time.Time, points []Point[T]) *T, duration time.Duration) *Seq[T] {
+	var (
+		ret  []Point[T]
+		temp []Point[T]
+	)
 
-	ret := Float32s{}
-	temp := Float32s{}
-
-	spoints := s.getSlice()
 	if duration <= 0 {
-		for i := 0; i < s.Len(); {
-			t := spoints[i].Time
-			if !interval.Contain(t) {
-				i++
-				continue
-			}
+		for i := 0; i < len(s.points); {
+			t := s.points[i].Time
 			temp = temp[:0]
-			for i < spoints.Len() && t.Equal(spoints[i].Time) {
-				temp = append(temp, spoints[i])
+			for i < len(s.points) && t.Equal(s.points[i].Time) {
+				temp = append(temp, s.points[i])
 				i++
 			}
 			v := fn(t, temp)
 			if v != nil {
-				ret = append(ret, Float32{
+				ret = append(ret, Point[T]{
 					Time:  t,
 					Value: *v,
 				})
 			}
 		}
-		return newFloat32Seq(ret)
-	}
-
-	if len(spoints) == 0 && interval.Duration() < 0 {
-		return s
-	}
-
-	var begin time.Time
-	if len(spoints) > 0 {
-		begin = spoints[0].Time.Truncate(duration)
-	}
-	if interval.NotBefore != nil {
-		begin = (*interval.NotBefore).Truncate(duration)
-		if begin.Before(*interval.NotBefore) {
-			begin = begin.Add(duration)
+		return &Seq[T]{
+			points: ret,
 		}
 	}
 
-	var end time.Time
-	if len(spoints) > 0 {
-		end = spoints[len(spoints)-1].Time.Truncate(duration)
-	}
-	if interval.NotAfter != nil {
-		end = (*interval.NotAfter).Truncate(duration)
+	var (
+		begin, end time.Time
+	)
+	if len(s.points) > 0 {
+		begin = s.points[0].Time.Truncate(duration)
+		end = s.points[len(s.points)-1].Time.Truncate(duration)
 	}
 
 	for t, i := begin, 0; !t.After(end); t = t.Add(duration) {
 		temp = temp[:0]
-		itv := BeginAt(t).EndAt(t.Add(duration))
-		for i < len(spoints) {
-			if spoints[i].Time.After(*itv.NotAfter) {
+		nextT := t.Add(duration)
+		for i < len(s.points) {
+			if !s.points[i].Time.Before(nextT) {
 				break
 			}
-			if itv.Contain(spoints[i].Time) {
-				temp = append(temp, spoints[i])
-			}
+			temp = append(temp, s.points[i])
 			i++
 		}
 		v := fn(t, temp)
 		if v != nil {
-			ret = append(ret, Float32{
+			ret = append(ret, Point[T]{
 				Time:  t,
 				Value: *v,
 			})
 		}
 	}
 
-	return newFloat32Seq(ret)
+	return &Seq[T]{
+		points: ret,
+	}
 }
