@@ -1,6 +1,6 @@
 # timeseq
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/gochore/timeseq/v3.svg)](https://pkg.go.dev/github.com/gochore/timeseq/v2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/gochore/timeseq/v3.svg)](https://pkg.go.dev/github.com/gochore/timeseq/v3)
 [![Actions](https://github.com/gochore/timeseq/actions/workflows/check.yaml/badge.svg)](https://github.com/gochore/timeseq/actions)
 [![codecov](https://codecov.io/gh/gochore/timeseq/branch/master/graph/badge.svg)](https://codecov.io/gh/gochore/timeseq)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gochore/timeseq)](https://goreportcard.com/report/github.com/gochore/timeseq)
