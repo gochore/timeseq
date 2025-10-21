@@ -2,7 +2,7 @@ package timeseq
 
 import (
 	"fmt"
-	"math/rand/v2"
+	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
