@@ -16,9 +16,20 @@ type Point[T Number] struct {
 	Value T
 }
 
-func (i Point[T]) IsZero() bool {
+func NewPoint[T Number](t time.Time, v T) Point[T] {
+	return Point[T]{
+		Time:  t,
+		Value: v,
+	}
+}
+
+func (p Point[T]) IsZero() bool {
 	var zero T
-	return i.Time.IsZero() && i.Value == zero
+	return p.Time.IsZero() && p.Value == zero
+}
+
+func (p Point[T]) Equal(other Point[T]) bool {
+	return p.Time.Equal(other.Time) && p.Value == other.Value
 }
 
 type Seq[T Number] struct {
@@ -67,9 +78,6 @@ func compareItems[T Number](a, b Point[T]) int {
 }
 
 func (s *Seq[T]) buildIndex() {
-	if s == nil {
-		return
-	}
 	s.indexOnce.Do(func() {
 		timeIndex := make(map[timeKey][]int, len(s.points))
 		valueIndex := make(map[T][]int, len(s.points))
@@ -300,12 +308,12 @@ func Merge[T Number](s1, s2 *Seq[T], fn func(t time.Time, v1, v2 *T) *T) *Seq[T]
 			v *T
 		)
 		switch {
-		case i1 == len(s1.points) || s1.points[i1].Time.After(s2.points[i2].Time):
+		case i1 == len(s1.points):
 			t = s2.points[i2].Time
 			v2 := s2.points[i2].Value
 			v = fn(t, nil, &v2)
 			i2++
-		case i2 == len(s2.points) || s1.points[i1].Time.Before(s2.points[i2].Time):
+		case i2 == len(s2.points):
 			t = s1.points[i1].Time
 			v1 := s1.points[i1].Value
 			v = fn(t, &v1, nil)
@@ -317,6 +325,16 @@ func Merge[T Number](s1, s2 *Seq[T], fn func(t time.Time, v1, v2 *T) *T) *Seq[T]
 			v = fn(t, &v1, &v2)
 			i1++
 			i2++
+		case s1.points[i1].Time.After(s2.points[i2].Time):
+			t = s2.points[i2].Time
+			v2 := s2.points[i2].Value
+			v = fn(t, nil, &v2)
+			i2++
+		case s1.points[i1].Time.Before(s2.points[i2].Time):
+			t = s1.points[i1].Time
+			v1 := s1.points[i1].Value
+			v = fn(t, &v1, nil)
+			i1++
 		}
 		if v != nil {
 			ret = append(ret, Point[T]{
