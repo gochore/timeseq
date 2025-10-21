@@ -604,7 +604,8 @@ func TestSeq_Range(t *testing.T) {
 	data := randomSeq(100, true)
 
 	type args struct {
-		interval Interval
+		begin time.Time
+		end   time.Time
 	}
 	tests := []struct {
 		name string
@@ -616,7 +617,8 @@ func TestSeq_Range(t *testing.T) {
 			name: "regular",
 			data: data,
 			args: args{
-				interval: AfterOrEqual(data[10].Time).BeforeOrEqual(data[89].Time),
+				begin: data[10].Time,
+				end:   data[89].Time,
 			},
 			want: data[10:90],
 		},
@@ -624,7 +626,7 @@ func TestSeq_Range(t *testing.T) {
 			name: "nil NotBefore",
 			data: data,
 			args: args{
-				interval: BeforeOrEqual(data[89].Time),
+				end: data[89].Time,
 			},
 			want: data[:90],
 		},
@@ -632,7 +634,7 @@ func TestSeq_Range(t *testing.T) {
 			name: "nil NotAfter",
 			data: data,
 			args: args{
-				interval: AfterOrEqual(data[10].Time),
+				begin: data[10].Time,
 			},
 			want: data[10:],
 		},
@@ -640,7 +642,7 @@ func TestSeq_Range(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewSeq(data)
-			if got := s.Range(tt.args.interval).Points(); !reflect.DeepEqual(got, tt.want) {
+			if got := s.Range(tt.args.begin, tt.args.end).Points(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Range() = %v, want %v", got, tt.want)
 			}
 		})
@@ -824,6 +826,14 @@ func Test_Merge(t *testing.T) {
 			}
 		})
 	}
+}
+
+func parseTime(s string) time.Time {
+	ret, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }
 
 func TestSeq_Aggregate(t *testing.T) {

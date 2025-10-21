@@ -243,21 +243,22 @@ func (s *Seq[T]) Percentile(pct float64) Point[T] {
 	return s.points[s.valueOrder[i]]
 }
 
-// Range returns a sub *Seq with specified interval
-func (s *Seq[T]) Range(interval Interval) *Seq[T] {
+// Range returns a sub *Seq with specified interval,
+// zero value means unbounded.
+func (s *Seq[T]) Range(begin, end time.Time) *Seq[T] {
 	i := 0
-	if interval.NotBefore != nil {
-		i, _ = slices.BinarySearchFunc(s.points, Point[T]{Time: *interval.NotBefore}, func(a, b Point[T]) int {
+	if !begin.IsZero() {
+		i, _ = slices.BinarySearchFunc(s.points, Point[T]{Time: begin}, func(a, b Point[T]) int {
 			return compareItems[T](a, b)
 		})
 	}
 	j := len(s.points)
-	if interval.NotAfter != nil {
-		j, _ = slices.BinarySearchFunc(s.points, Point[T]{Time: *interval.NotAfter}, func(a, b Point[T]) int {
+	if !end.IsZero() {
+		j, _ = slices.BinarySearchFunc(s.points, Point[T]{Time: end}, func(a, b Point[T]) int {
 			return compareItems[T](a, b)
 		})
 
-		if j < len(s.points) && s.points[j].Time.Equal(*interval.NotAfter) {
+		if j < len(s.points) && s.points[j].Time.Equal(end) {
 			j++
 		}
 	}
