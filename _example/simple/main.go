@@ -1,28 +1,3 @@
-# timeseq
-
-[![Go Reference](https://pkg.go.dev/badge/github.com/gochore/timeseq/v3.svg)](https://pkg.go.dev/github.com/gochore/timeseq/v3)
-[![Actions](https://github.com/gochore/timeseq/actions/workflows/check.yaml/badge.svg)](https://github.com/gochore/timeseq/actions)
-[![codecov](https://codecov.io/gh/gochore/timeseq/branch/master/graph/badge.svg)](https://codecov.io/gh/gochore/timeseq)
-[![Go Report Card](https://goreportcard.com/badge/github.com/gochore/timeseq)](https://goreportcard.com/report/github.com/gochore/timeseq)
-[![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/gochore/timeseq)](https://github.com/gochore/timeseq/blob/master/go.mod)
-[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/gochore/timeseq)](https://github.com/gochore/timeseq/releases)
-
-Time sequence.
-
-This package defines `Seq[T]` for time series data,
-and provides useful methods to deal with them, you can `Merge`, `Filter` or `Aggregate` your data.
-
-## Install
-
-```bash
-go get github.com/gochore/timeseq/v3
-```
-
-## Example
-
-See more in [doc](https://pkg.go.dev/github.com/gochore/timeseq/v3).
-
-```go
 package main
 
 import (
@@ -112,5 +87,3 @@ func main() {
 
 	fmt.Println(newSeq.Points())
 }
-```
-
