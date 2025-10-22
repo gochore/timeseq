@@ -392,31 +392,27 @@ func TestSeq_Sum(t *testing.T) {
 }
 
 func TestSeq_Avg(t *testing.T) {
-	data := randomSeq(100, true)
+	t.Run("regular", func(t *testing.T) {
+		data := randomSeq(100, true)
 
-	var avg float64
-	for _, v := range data {
-		avg += v.Value
-	}
-	avg /= float64(len(data))
+		var avg float64
+		for _, v := range data {
+			avg += v.Value
+		}
+		avg /= float64(len(data))
 
-	tests := []struct {
-		name string
-		want float64
-	}{
-		{
-			name: "regular",
-			want: avg,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := NewSeq(data)
-			if got := s.Avg(); got != tt.want {
-				t.Errorf("Avg() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+		s := NewSeq(data)
+		if got := s.Avg(); got != avg {
+			t.Errorf("Avg() = %v, want %v", got, avg)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		s := NewSeq[int64](nil)
+		if got := s.Avg(); got != 0 {
+			t.Errorf("Avg() = %v, want %v", got, 0)
+		}
+	})
 }
 
 func TestSeq_Max(t *testing.T) {
