@@ -391,6 +391,30 @@ func TestSeq_Sum(t *testing.T) {
 	}
 }
 
+func TestSeq_Avg(t *testing.T) {
+	t.Run("regular", func(t *testing.T) {
+		data := randomSeq(100, true)
+
+		var avg float64
+		for _, v := range data {
+			avg += v.Value
+		}
+		avg /= float64(len(data))
+
+		s := NewSeq(data)
+		if got := s.Avg(); got != avg {
+			t.Errorf("Avg() = %v, want %v", got, avg)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		s := NewSeq[int64](nil)
+		if got := s.Avg(); got != 0 {
+			t.Errorf("Avg() = %v, want %v", got, 0)
+		}
+	})
+}
+
 func TestSeq_Max(t *testing.T) {
 	data := randomSeq(100)
 

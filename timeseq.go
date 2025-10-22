@@ -181,6 +181,15 @@ func (s *Seq[T]) Sum() T {
 	return ret
 }
 
+// Avg returns average of all values, returns zero if empty
+func (s *Seq[T]) Avg() T {
+	ret := s.Sum()
+	if len(s.points) == 0 {
+		return ret
+	}
+	return ret / T(len(s.points))
+}
+
 // Max returns the point with max value, returns zero if empty
 func (s *Seq[T]) Max() Point[T] {
 	var ret Point[T]
