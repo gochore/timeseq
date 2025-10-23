@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// NewSeq returns Seq with points inside
+// NewSeq returns Seq with points inside (sorts if needed, does not copy)
 func NewSeq[T Number](points []Point[T]) *Seq[T] {
 	if !slices.IsSortedFunc(points, compareItems[T]) {
 		slices.SortStableFunc(points, compareItems[T])
