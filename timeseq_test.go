@@ -1,6 +1,7 @@
 package timeseq
 
 import (
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -77,4 +78,27 @@ func Test_Merge(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConvert(t *testing.T) {
+	t.Run("regular", func(t *testing.T) {
+		seq1 := NewSeq(randomSeq(10))
+		seq2 := Convert(seq1, func(v Point[float64]) Point[int] {
+			return NewPoint(v.Time, int(math.Round(v.Value)))
+		})
+
+		points := seq1.Points()
+		seq2.Traverse(func(i int, v Point[int]) bool {
+			expected := int(math.Round(points[i].Value))
+			if v.Time != points[i].Time { // Use != instead of !Time.Equal
+				t.Errorf("Convert() time %d = %v, want %v", i, v.Time, points[i].Time)
+				return false
+			}
+			if v.Value != expected {
+				t.Errorf("Convert() value %d = %v, want %v", i, v.Value, expected)
+				return false
+			}
+			return true
+		})
+	})
 }

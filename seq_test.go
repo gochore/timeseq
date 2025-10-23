@@ -24,7 +24,7 @@ func randomSeq(length int, sorted ...bool) []Point[float64] {
 				delta = -delta
 			}
 		}
-		value := rand.Float64()
+		value := rand.Float64() * 1000
 		for value == 0 || value == 1 || value == 2 { // reserved values
 			value = rand.Float64()
 		}
@@ -828,7 +828,7 @@ func TestSeq_Aggregate(t *testing.T) {
 	}
 }
 
-func TestConvertSeq(t *testing.T) {
+func TestNewSeqConvert(t *testing.T) {
 	t.Run("regular", func(t *testing.T) {
 		type P struct {
 			Timestamp int64
@@ -839,7 +839,7 @@ func TestConvertSeq(t *testing.T) {
 			{Timestamp: 2, Value: 20},
 			{Timestamp: 3, Value: 30},
 		}
-		seq := ConvertSeq(ps, func(p P) Point[int64] {
+		seq := NewSeqConvert(ps, func(p P) Point[int64] {
 			return NewPoint(time.Unix(p.Timestamp, 0), p.Value)
 		})
 		want := []Point[int64]{

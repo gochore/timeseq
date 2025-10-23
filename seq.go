@@ -83,7 +83,7 @@ func (s *Seq[T]) MValue(v T) []Point[T] {
 }
 
 // Traverse call fn for every point one by one, break if fn returns false
-func (s *Seq[T]) Traverse(fn func(i int, v Point[T]) (stop bool)) {
+func (s *Seq[T]) Traverse(fn func(i int, v Point[T]) bool) {
 	for i, v := range s.points {
 		if !fn(i, v) {
 			break
