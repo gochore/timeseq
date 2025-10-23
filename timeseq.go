@@ -1,6 +1,40 @@
 package timeseq
 
-import "time"
+import (
+	"slices"
+	"time"
+)
+
+// NewSeq returns Seq with points inside
+func NewSeq[T Number](points []Point[T]) *Seq[T] {
+	if !slices.IsSortedFunc(points, compareItems[T]) {
+		slices.SortStableFunc(points, compareItems[T])
+	}
+	return &Seq[T]{
+		points: points,
+	}
+}
+
+// NewSeqCopy returns Seq with copied points inside
+func NewSeqCopy[T Number](points []Point[T]) *Seq[T] {
+	temp := make([]Point[T], len(points))
+	copy(temp, points)
+	return NewSeq(temp)
+}
+
+// NewSeqConvert converts a slice of any type to Seq using the convert function
+func NewSeqConvert[T Number, S []P, P any](s S, convert func(p P) Point[T]) *Seq[T] {
+	points := make([]Point[T], 0, len(s))
+	for _, v := range s {
+		points = append(points, convert(v))
+	}
+	return NewSeq(points)
+}
+
+// Convert converts a Seq of one type to a Seq of another type using the convert function
+func Convert[T Number, P Number](s *Seq[P], convert func(v Point[P]) Point[T]) *Seq[T] {
+	return NewSeqConvert(s.points, convert)
+}
 
 // Merge merges two Seq into a new Seq according to the specified rule
 func Merge[T Number](s1, s2 *Seq[T], fn func(t time.Time, v1, v2 *T) *T) *Seq[T] {

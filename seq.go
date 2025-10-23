@@ -16,62 +16,6 @@ type Seq[T Number] struct {
 	valueOrder []int
 }
 
-// NewSeq returns Seq with copied points inside
-func NewSeq[T Number](points []Point[T]) *Seq[T] {
-	temp := make([]Point[T], len(points))
-	copy(temp, points)
-	return WrapSeq(temp)
-}
-
-// WrapSeq returns Seq with origin points inside
-func WrapSeq[T Number](points []Point[T]) *Seq[T] {
-	if !slices.IsSortedFunc(points, compareItems[T]) {
-		slices.SortStableFunc(points, compareItems[T])
-	}
-	return &Seq[T]{
-		points: points,
-	}
-}
-
-// ConvertSeq converts a slice of any type to Seq using the convert function
-func ConvertSeq[T Number, S []P, P any](s S, convert func(p P) Point[T]) *Seq[T] {
-	points := make([]Point[T], 0, len(s))
-	for _, v := range s {
-		points = append(points, convert(v))
-	}
-	return WrapSeq(points)
-}
-
-func compareItems[T Number](a, b Point[T]) int {
-	if a.Time.Before(b.Time) {
-		return -1
-	}
-	if a.Time.After(b.Time) {
-		return 1
-	}
-	return 0
-}
-
-func (s *Seq[T]) buildIndex() {
-	s.indexOnce.Do(func() {
-		timeIndex := make(map[timeKey][]int, len(s.points))
-		valueIndex := make(map[T][]int, len(s.points))
-		valueSlice := s.valueOrder[:0]
-		for i, v := range s.points {
-			k := newTimeKey(v.Time)
-			timeIndex[k] = append(timeIndex[k], i)
-			valueIndex[v.Value] = append(valueIndex[v.Value], i)
-			valueSlice = append(valueSlice, i)
-		}
-		sort.SliceStable(valueSlice, func(i, j int) bool {
-			return s.points[valueSlice[i]].Value < s.points[valueSlice[j]].Value
-		})
-		s.timeIndex = timeIndex
-		s.valueIndex = valueIndex
-		s.valueOrder = valueSlice
-	})
-}
-
 // Points returns a replica of inside points
 func (s *Seq[T]) Points() []Point[T] {
 	ret := make([]Point[T], len(s.points))
@@ -341,4 +285,34 @@ func (s *Seq[T]) Aggregate(fn func(t time.Time, points []Point[T]) *T, duration 
 	return &Seq[T]{
 		points: ret,
 	}
+}
+
+func compareItems[T Number](a, b Point[T]) int {
+	if a.Time.Before(b.Time) {
+		return -1
+	}
+	if a.Time.After(b.Time) {
+		return 1
+	}
+	return 0
+}
+
+func (s *Seq[T]) buildIndex() {
+	s.indexOnce.Do(func() {
+		timeIndex := make(map[timeKey][]int, len(s.points))
+		valueIndex := make(map[T][]int, len(s.points))
+		valueSlice := s.valueOrder[:0]
+		for i, v := range s.points {
+			k := newTimeKey(v.Time)
+			timeIndex[k] = append(timeIndex[k], i)
+			valueIndex[v.Value] = append(valueIndex[v.Value], i)
+			valueSlice = append(valueSlice, i)
+		}
+		sort.SliceStable(valueSlice, func(i, j int) bool {
+			return s.points[valueSlice[i]].Value < s.points[valueSlice[j]].Value
+		})
+		s.timeIndex = timeIndex
+		s.valueIndex = valueIndex
+		s.valueOrder = valueSlice
+	})
 }
