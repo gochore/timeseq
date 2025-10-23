@@ -102,3 +102,18 @@ func TestConvert(t *testing.T) {
 		})
 	})
 }
+
+func TestNewSeqCopy(t *testing.T) {
+	t.Run("regular", func(t *testing.T) {
+		data := randomSeq(10, true)
+		seq := NewSeq(data)
+		seqCopy := NewSeqCopy(data)
+		data[0].Value = 1
+		if seq.Points()[0].Value != 1 {
+			t.Errorf("NewSeq() did not reflect changes to original data")
+		}
+		if seqCopy.Points()[0].Value == 1 {
+			t.Errorf("NewSeqCopy() reflected changes to original data")
+		}
+	})
+}
