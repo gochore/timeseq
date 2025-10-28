@@ -36,37 +36,34 @@ func main() {
 	now := time.Now()
 
 	// define a data point
-	point := timeseq.NewPoint(now, 1)
+	point := timeseq.NewPoint(now, 0)
 
 	// define a data series
 	slice := []timeseq.Point[int]{
-		{
-			Time:  now.Add(time.Second),
-			Value: 1,
-		},
+		// use the defined point
+		point,
+		// new point with function
+		timeseq.NewPoint(now.Add(time.Second), 1),
+		// new point with struct literal
 		{
 			Time:  now.Add(2 * time.Second),
 			Value: 2,
 		},
 	}
 
-	// you can append and modify slice
-	slice = append(slice, point)
-	slice[0].Value = 100
-	slice[1].Time = now.Add(time.Hour)
-
-	// define a seq according to the slice, it will copy and sort data
+	// define a seq according to the slice, it will sort the points if needed
 	seq := timeseq.NewSeq(slice)
 
-	// now you can not modify or add elem to seq, seq has protected slice inside
-	point = seq.Index(0)
-	point.Value = 100 // not work, it does not change the data in seq
+	// to avoid unexpected modification, you can use NewSeqCopy to copy the slice
+	seq = timeseq.NewSeqCopy(slice)
 
-	// for better performance, you can use existing slice as inside data
-	seq = timeseq.WrapSeq(slice)
-
-	// it should be noted that you should not modify the slice any longer
-	// slice[0].Value = 0 // please don't do that!
+	// or you can use NewSeqConvert to convert from any slice type
+	seq2 := timeseq.NewSeqConvert(
+		[]int{1, 2, 3, 4, 5},
+		func(p int) timeseq.Point[int] {
+			return timeseq.NewPoint(now.Add(time.Duration(p)*time.Second), p)
+		},
+	)
 
 	// now you enjoy the convenience it brings
 
@@ -89,16 +86,6 @@ func main() {
 	})
 
 	// merge data
-	seq2 := timeseq.WrapSeq([]timeseq.Point[int]{
-		{
-			Time:  now.Add(time.Second),
-			Value: 1,
-		},
-		{
-			Time:  now.Add(-time.Second),
-			Value: 2,
-		},
-	})
 	newSeq := timeseq.Merge(seq, seq2, func(t time.Time, v1, v2 *int) *int {
 		if v1 == nil {
 			return v2
